@@ -5,6 +5,11 @@ compatibility_date = "2024-03-05"
 # [vars]
 # API_SECRET = "your-secret"
 
+routes = [
+  { pattern = "romancespace.885201314.xyz", custom_domain = true },
+  { pattern = "*.romancespace.885201314.xyz", custom_domain = true }
+]
+
 # [[kv_namespaces]]
 # binding = "PROJECT_ROUTES"
 # id = "your-kv-namespace-id"
