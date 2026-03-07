@@ -50,10 +50,12 @@
         <pre
             style="background: #282c34; padding: 12px; border-radius: 6px; font-family: monospace; color: #abb2bf; margin:0; font-size: 13px;">
 {
-  "type": "love_letter"
+  "type": "love_letter",
+  "data": {}
 }
         </pre>
-        <p style="margin: 8px 0 0 0; font-size: 13px; color: #64748b;">注：此时不传 <code>data</code>，模板使用默认值渲染。</p>
+        <p style="margin: 8px 0 0 0; font-size: 13px; color: #64748b;">注：首次启用时 <code>data</code>
+            建议传空对象，这代表通知平台使用此模板的各类默认值进行渲染。</p>
     </div>
 
     <!-- 场景二：后续修改内容或更换模板 -->
@@ -99,7 +101,8 @@
 **Body (JSON):**
 ```json
 {
-  "type": "love_letter"
+  "type": "love_letter",
+  "data": {}
 }
 ```
 
