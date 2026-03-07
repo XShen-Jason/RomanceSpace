@@ -3,15 +3,8 @@
  * Path: romancespace/src/index.js
  */
 
-// Import all supported project templates statically for the edge environment
-import * as loveLetter from './projects/love_letter/index.js';
-import * as anniversary from './projects/anniversary/index.js';
-
-// Map database 'type' strings to the loaded javascript modules
-const PROJECT_REGISTRY = {
-  'love_letter': loveLetter,
-  'anniversary': anniversary
-};
+// Import all supported project templates via the auto-generated registry
+import { PROJECT_REGISTRY } from './registry.js';
 
 export default {
   async fetch(request, env, ctx) {
