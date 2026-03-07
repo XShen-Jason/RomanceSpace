@@ -4,66 +4,64 @@
     <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🛠️ RomanceSpace 主引挚 (Worker)
         开发与集成指南</h1>
 
-    <p>这份文档面向<strong>后端开发人员</strong>与<strong>前端页面开发者</strong>，阐述了 RomanceSpace 边缘 Serverless 引擎的核心架构，以及外部系统如何与该引擎进行数据交互。
-    </p>
+    <p>这份文档面向<strong>后端开发人员</strong>与<strong>前端页面开发者</strong>，阐述了 RomanceSpace 边缘引擎的核心架构，以及外部系统如何进行数据交互。</p>
 
     <h2 style="color: #d35400; margin-top: 30px;">1. 架构总览</h2>
     <p>RomanceSpace 的核心用户项目分发基于 <strong>Cloudflare Worker</strong> 和 <strong>Cloudflare KV</strong>（键值对存储）。</p>
     <ul>
-        <li><strong>请求链路举例：</strong>
+        <li><strong>请求链路示例：</strong>
             <ol>
                 <li>用户在浏览器输入定制的三级域名：<code>https://xiaoming.885201314.xyz</code></li>
-                <li>由于 Cloudflare 配置了泛解析 <code>*.885201314.xyz</code>，请求被边缘 Worker 拦截接管。</li>
-                <li>Worker 从域名中提取出最前方的子域名，即特征信息 <code>xiaoming</code>。</li>
-                <li>拿着 <code>xiaoming</code> 去高速 KV 数据库检索匹配的配置。</li>
-                <li>根据取出的 <code>type</code> 动态选择项目代码包，传入参数渲染最终网页发给用户浏览。</li>
+                <li>由于 Cloudflare 启用了泛解析 <code>*.885201314.xyz</code>，请求被边缘 Worker 拦截。</li>
+                <li>Worker 从域名中提取出最前方的子域名作为特征标识 <code>xiaoming</code>。</li>
+                <li>通过该标识向 KV 数据库检索匹配的配置参数。</li>
+                <li>根据取出的 <code>type</code> 动态选择项目代码包，传入参数渲染最终网页并返回。</li>
             </ol>
         </li>
-        <li><strong>核心优势：</strong> 全球边缘节点万秒级快速渲染，项目前后端彻解耦。</li>
     </ul>
 
-    <h2 style="color: #27ae60; margin-top: 30px;">2. 主平台 (如 Next.js) 如何派发数据到 KV</h2>
-    <p>当用户在您的 Next.js 主网站上买单并定制了一个专属的纪念日页面后，您的 Next.js 服务端需要将最终配置推送到 Cloudflare KV 中供边缘系统消费。</p>
+    <h2 style="color: #27ae60; margin-top: 30px;">2. 主平台如何推送数据到 KV</h2>
+    <p>当用户在主站创建并定制了专属页面后，主站服务端需要将最终配置推送到 Cloudflare KV 中供边缘系统读取。</p>
 
     <div
         style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #27ae60; overflow-x: auto;">
-        <h4 style="margin: 0 0 10px 0;">深入理解 KV 数据库的 K 与 V</h4>
-        <p style="margin: 0;"><strong>什么是 K (Key / 键名)？</strong></p>
-        <p style="margin: 5px 0 15px 0; color: #555;">K 决定了用户的访问网址。如果设置 K 为 <code>xiaoming</code>，则它死死绑定访问入口
+        <h4 style="margin: 0 0 10px 0;">KV 数据结构说明</h4>
+        <p style="margin: 0;"><strong>Key (键名)</strong></p>
+        <p style="margin: 5px 0 15px 0; color: #555;">决定用户的访问网址。如果键名为 <code>xiaoming</code>，则绑定访问入口为
             <code>xiaoming.885201314.xyz</code>。</p>
 
-        <p style="margin: 0;"><strong>什么是 V (Value / 键值)？</strong></p>
-        <p style="margin: 5px 0 15px 0; color: #555;">V 是一串必须包含 <code>type</code> 和 <code>data</code> 两个核心字段的 JSON
-            字符串文本。<br>在其中，可以任意塞入用户自己填写的图片链接、文字祝福、日期、音乐等参数内容。</p>
+        <p style="margin: 0;"><strong>Value (键值)</strong></p>
+        <p style="margin: 5px 0 15px 0; color: #555;">必须包含 <code>type</code> 和 <code>data</code> 两个核心字段的 JSON
+            字符串文本。<br>用于承载模板标识与用户定制的各个参数。</p>
         <pre style="margin: 5px 0; color: #d63384; font-size: 0.9em; font-family: monospace;">
-// 理想放入 KV 中 V 的结构样貌
+// KV 中 Value 的结构示例
 {
-    "type": "anniversary", // 告诉 Worker 应该去调用 /projects/anniversary 文件夹里的代码
-    "data": { // 这些字段全凭你高兴设计，用来传给指定的模版去显示
+    "type": "anniversary", // 调用的模板代号
+    "data": { // 传递给指定模版的定制参数
         "title": "三周年快乐",
         "startDate": "2023-01-01",
-        "message": "一直一直喜欢你。"
+        "message": "一直在一起。"
     }
 }
         </pre>
 
-        <h4 style="margin: 20px 0 10px 0;">主平台 Next.js 交互简要流程</h4>
+        <h4 style="margin: 20px 0 10px 0;">主平台交互简要流程</h4>
         <ol style="margin: 0; padding-left: 20px; color: #444;">
-            <li>在 Next.js 服务端 (Server Actions 或 API Route) 接收用户的定制表单请求。</li>
-            <li>拼接成上述这种包裹 <code>type</code> 和 <code>data</code> 的 JSON。</li>
-            <li>使用 Cloudflare 提供的官方 SDK/API，往该项目绑定的 <code>KV Namespace</code> 中写入一条记录，记录的键名为分配给他的子域名前缀。</li>
-            <li>此时即可重定向或通知用户：专属页面部署成功，请直接访问你的子域名。</li>
+            <li>在主站服务端接收用户的定制表单请求。</li>
+            <li>组合包含 <code>type</code> 和 <code>data</code> 的 JSON。</li>
+            <li>使用官方 API，向绑定的 <code>KV Namespace</code> 写入记录，键名为用户的子域名前缀。</li>
+            <li>重定向或通知用户访问生成的子域名网页。</li>
         </ol>
     </div>
 
-    <h2 style="color: #8e44ad; margin-top: 30px;">3. Worker 目录与路由架构体系</h2>
-    <p>RomanceSpace 的根路由 <code>src/index.js</code> 完全扮演系统总线（Router）角色，它本身没有任何界面逻辑，仅包含数据的搬运与转发。目录结构非常清晰：</p>
+    <h2 style="color: #8e44ad; margin-top: 30px;">3. 目录与路由架构</h2>
+    <p>根路由 <code>src/index.js</code> 作为系统总线负责数据搬运与转发。目录结构如下：</p>
     <div
         style="background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; overflow-x: auto; margin-bottom: 20px;">
         <pre style="margin: 0;">
 /romancespace
 ├── src
-│   ├── index.js          (主路由器：拦截请求 -> 提取子域名 -> 查KV -> 将V转交组件)
+│   ├── index.js          (主路由器：拦截请求 -> 提取子域名 -> 查KV -> 转发数据)
 │   └── projects          (独立模版生态系统箱)
 │       ├── love_letter   (情书模版目录)
 │       └── anniversary   (纪念日模版目录)
@@ -72,38 +70,34 @@
 
     <p style="font-weight: bold; margin-bottom: 5px;">主路由数据流向解析：</p>
     <ol style="margin-top: 0;">
-        <li>如果请求的是免配置的展示链接（如 <code>/preview/xxx</code>），则跳过数据库查询。直接把默认数据对象交给目标文件夹模块。</li>
-        <li>如果是有效的三级域名访问，例如提取到了 <code>xiaoming</code>，那么系统会把 <code>xiaoming</code> 对应的 KV 数据拉取出来。把 JSON 解码后，拿上它去唤醒对应目录。
-        </li>
-        <li>例如，解出 <code>type: anniversary</code> 取出里面的 <code>data: {...}</code>，主路由会将这段配置作为函数参数投喂给
-            <code>src/projects/anniversary/index.js</code> 的主函数。最终接收一段渲染好的纯 HTML 送给浏览器。</li>
+        <li>如果请求免配置预览链接（如 <code>/preview/xxx</code>），将跳过数据库查询，直接将默认对象交给对应模块。</li>
+        <li>如果是有效的三级域名访问，系统拉取 KV 数据，解析出 <code>type</code> 与 <code>data</code>。</li>
+        <li>将 <code>data</code> 配置作为参数传入对应模板的 <code>render</code> 函数中，接收返回的纯 HTML 发送给浏览器。</li>
     </ol>
 
-    <h2 style="color: #2980b9; margin-top: 30px;">4. 模版接入：如何将第三方网页变为 RomanceSpace 模版</h2>
-    <p>如果您从网上下载了好看的网页源码（或者您自己编写了一个 HTML/JS 小项目），并希望把它作为 RomanceSpace 的一个新模版供用户选择，您<strong>只需要负责第一步</strong>，剩下的都可以交给 AI
-        去配置：</p>
+    <h2 style="color: #2980b9; margin-top: 30px;">4. 模版接入：如何将第三方网页变为标准模版</h2>
+    <p>外部源码作为新模板接入系统时，只需遵循以下结构放置并对外暴露函数即可：</p>
 
     <div
         style="background: #fdfae6; padding: 15px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 20px;">
-        <h4 style="margin: 0 0 10px 0; color: #d35400;">您的工作：放置文件并包装函数</h4>
+        <h4 style="margin: 0 0 10px 0; color: #d35400;">文件放置与函数包装</h4>
         <ol style="margin-top: 0;">
-            <li>在 <code>romancespace/src/projects/</code> 下新建一个文件夹，比如 <code>new_project</code>。</li>
-            <li>在该文件夹中创建一个 <code>index.js</code>。</li>
-            <li>将您所有的 HTML、CSS 和脚本代码，作为<strong>字符串</strong>通过下面这个标准模版包裹起来：</li>
+            <li>在 <code>romancespace/src/projects/</code> 下新建文件夹（如 <code>new_project</code>）。</li>
+            <li>在该文件夹中创建 <code>index.js</code>。</li>
+            <li>所有的 HTML、CSS 和 JS 脚本须作为<strong>字符串</strong>通过以下标准模板返回：</li>
         </ol>
 
-        <p style="font-weight: bold; margin: 15px 0 5px 0;">👇 小项目包装标准模版 (直接复制修改)：</p>
+        <p style="font-weight: bold; margin: 15px 0 5px 0;">👇 小项目包装标准参考：</p>
         <pre
             style="background: #f4f4f4; padding: 15px; border-radius: 6px; margin: 0; color: #333; overflow-x: auto; font-family: monospace; font-size: 0.9em;">
 export function render(config) {
-    // 1. 这里是你可以接收的变量，设置好默认值
+    // 1. 接收自定义变量，并设置默认值
     const { 
         title = "默认标题", 
         name = "默认名字" 
     } = config;
     
-    // 2. 务必返回一段完整的 HTML 字符串，所有的内联 CSS 和 JS 都往里面塞
-    // 可以使用 \${变量名} 的语法把变量插进网页里
+    // 2. 返回完整的 HTML 字符串。可使用 \${变量名} 注入数据。
     return `
 &lt;!DOCTYPE html&gt;
 &lt;html&gt;
@@ -122,11 +116,8 @@ export function render(config) {
     </div>
 
     <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; border-left: 4px solid #2980b9;">
-        <h4 style="margin: 0 0 10px 0; color: #1e6091;">AI 的工作：向引擎注册 </h4>
-        <p style="margin: 0;">当您放好文件后，您只需要告诉 AI：<strong>“我刚刚以新模版标准加入了一个叫 <code>new_project</code> 的模板文件夹，请你帮我更新
-                <code>src/index.js</code> 主文件并且把它注册到路由中。”</strong></p>
-        <p style="margin: 10px 0 0 0; color: #555; font-size: 0.9em;">AI 会自动帮您 <code>import</code> 并在
-            <code>PROJECT_REGISTRY</code> 中建立索引机制，这样该模块就彻底被系统接管可用了。
-        </p>
+        <h4 style="margin: 0 0 10px 0; color: #1e6091;">向主路由注册</h4>
+        <p style="margin: 0;">放置文件后，需在 <code>src/index.js</code> 总线文件中引入该模块，并将其添加到 <code>PROJECT_REGISTRY</code>
+            常量对象中建立路由映射。</p>
     </div>
 </div>

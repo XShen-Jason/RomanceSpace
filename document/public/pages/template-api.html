@@ -1,62 +1,61 @@
 <div
-    style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
+    style="font-family: 'Inter', sans-serif; line-height: 1.5; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
 
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🧩 各模板定制参数 (Data) 字典</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🧩 各模板参数字典</h1>
 
-    <p>当通过 <strong>KV 接口</strong> 给用户分配或修改模板时，除了必填的 <code>type</code> (模板代号) 之外，最重要的是填入 <code>data</code> (用户定制数据)。</p>
-    <p>正如您所主张的最佳实践，<strong>将所有模板的传参说明合并在一页展示效率最高</strong>。以下列出了当前系统中所有已注册模板可接收的 <code>data</code> 字典。</p>
+    <p style="font-size: 14px; color: #475569;">本文档列出了现有可用模板以及其对应的定制参数 (<code>data</code> 字段内含内容)。每个模板在不传
+        <code>data</code> 时均有默认展示效果。</p>
 
     <!-- 1. 表白信模板 -->
-    <h2 style="color: #d35400; margin-top: 30px; border-left: 4px solid #d35400; padding-left: 10px;">💌 模板一：表白信 (Love
-        Letter)</h2>
+    <h2 style="color: #d35400; font-size: 1.3em; margin-top: 30px; border-left: 4px solid #d35400; padding-left: 10px;">
+        💌 模板一：表白信 (love_letter)</h2>
     <div
-        style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px;">
-        <p style="margin-top: 0;"><strong>模板标识 (type):</strong> <code
-                style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #ef4444;">love_letter</code>
-        </p>
-        <p><strong>业务场景:</strong> 用于情书展示、表白或者带信封拆解交互的单页面。</p>
+        style="background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+        <p style="margin-top: 0; font-size: 14px;"><strong>适用场景:</strong> 情书展示或表白单页面。</p>
 
-        <h4 style="margin: 20px 0 10px 0;">该模板可接收的 Data 属性表</h4>
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9em;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; margin: 15px 0;">
             <thead>
                 <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                    <th style="padding: 10px;">字段 (Key)</th>
-                    <th style="padding: 10px;">类型</th>
-                    <th style="padding: 10px;">默认值</th>
-                    <th style="padding: 10px;">说明</th>
+                    <th style="padding: 6px 10px;">字段</th>
+                    <th style="padding: 6px 10px;">类型</th>
+                    <th style="padding: 6px 10px;">默认值</th>
+                    <th style="padding: 6px 10px;">说明</th>
                 </tr>
             </thead>
             <tbody>
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">title</td>
-                    <td style="padding: 10px;">String</td>
-                    <td style="padding: 10px; color: #64748b;">"My Love Letter"</td>
-                    <td style="padding: 10px;">网页的标题文字</td>
+                    <td style="padding: 6px 10px; font-family: monospace; color: #0284c7;">title</td>
+                    <td style="padding: 6px 10px;">String</td>
+                    <td style="padding: 6px 10px; color: #64748b;">"My Love Letter"</td>
+                    <td style="padding: 6px 10px;">网页标题</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">sender</td>
-                    <td style="padding: 10px;">String</td>
-                    <td style="padding: 10px; color: #64748b;">"Secret Admirer"</td>
-                    <td style="padding: 10px;">写信人的署名</td>
+                    <td style="padding: 6px 10px; font-family: monospace; color: #0284c7;">sender</td>
+                    <td style="padding: 6px 10px;">String</td>
+                    <td style="padding: 6px 10px; color: #64748b;">"Secret Admirer"</td>
+                    <td style="padding: 6px 10px;">写信人</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">receiver</td>
-                    <td style="padding: 10px;">String</td>
-                    <td style="padding: 10px; color: #64748b;">"You"</td>
-                    <td style="padding: 10px;">收信人的名字，通常称呼会显示在最上方</td>
+                    <td style="padding: 6px 10px; font-family: monospace; color: #0284c7;">receiver</td>
+                    <td style="padding: 6px 10px;">String</td>
+                    <td style="padding: 6px 10px; color: #64748b;">"You"</td>
+                    <td style="padding: 6px 10px;">收信人</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">paragraphs</td>
-                    <td style="padding: 10px;">Array&lt;String&gt;</td>
-                    <td style="padding: 10px; color: #64748b;">["I have liked you for a long time."]</td>
-                    <td style="padding: 10px;">信件正文内容。数组里的每一条字符串将被渲染为一个独立段落</td>
+                    <td style="padding: 6px 10px; font-family: monospace; color: #0284c7;">paragraphs</td>
+                    <td style="padding: 6px 10px;">Array</td>
+                    <td style="padding: 6px 10px; color: #64748b;">["I have liked you for a long time."]</td>
+                    <td style="padding: 6px 10px;">正文字符串数组，每个元素为一个段落</td>
                 </tr>
             </tbody>
         </table>
 
-        <h4 style="margin: 20px 0 10px 0;">[推入 KV] 完整组合 JSON 示例</h4>
-        <pre
-            style="background: #282c34; padding: 15px; border-radius: 6px; font-family: monospace; color: #abb2bf; overflow-x: auto; margin:0;">
+        <div style="position: relative;">
+            <button onclick="copyJson('json-love')"
+                style="position: absolute; right: 10px; top: 10px; padding: 4px 8px; font-size: 11px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; background: #fff;">📋
+                复制示例</button>
+            <pre id="json-love"
+                style="background: #282c34; padding: 12px; border-radius: 6px; font-family: monospace; color: #abb2bf; margin:0; font-size: 12px; overflow-x: auto;">
 {
     "type": "love_letter",
     "data": {
@@ -65,79 +64,91 @@
         "receiver": "小红",
         "paragraphs": [
             "这是我遇见你的第100天。",
-            "感谢命运让我们相视一笑，希望能永远陪你走下去。"
+            "感谢命运让我们相视一笑。"
         ]
     }
 }
 </pre>
+        </div>
     </div>
 
     <!-- 2. 纪念日模板 -->
-    <h2 style="color: #27ae60; margin-top: 40px; border-left: 4px solid #27ae60; padding-left: 10px;">🗓️ 模板二：恋爱纪念日
-        (Anniversary)</h2>
+    <h2 style="color: #27ae60; font-size: 1.3em; margin-top: 30px; border-left: 4px solid #27ae60; padding-left: 10px;">
+        🗓️ 模板二：纪念日 (anniversary)</h2>
     <div
-        style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px;">
-        <p style="margin-top: 0;"><strong>模板标识 (type):</strong> <code
-                style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #ef4444;">anniversary</code>
-        </p>
-        <p><strong>业务场景:</strong> 用于呈现两人在一起的时光正计时、重大日期纪念大屏等。</p>
+        style="background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+        <p style="margin-top: 0; font-size: 14px;"><strong>适用场景:</strong> 在一起时光正计时或重要日期纪念。</p>
 
-        <h4 style="margin: 20px 0 10px 0;">该模板可接收的 Data 属性表</h4>
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9em;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; margin: 15px 0;">
             <thead>
                 <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                    <th style="padding: 10px;">字段 (Key)</th>
-                    <th style="padding: 10px;">类型</th>
-                    <th style="padding: 10px;">默认值</th>
-                    <th style="padding: 10px;">说明</th>
+                    <th style="padding: 6px 10px;">字段</th>
+                    <th style="padding: 6px 10px;">类型</th>
+                    <th style="padding: 6px 10px;">默认值</th>
+                    <th style="padding: 6px 10px;">说明</th>
                 </tr>
             </thead>
             <tbody>
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">title</td>
-                    <td style="padding: 10px;">String</td>
-                    <td style="padding: 10px; color: #64748b;">"Our Anniversary"</td>
-                    <td style="padding: 10px;">纪念日网页或大标题</td>
+                    <td style="padding: 6px 10px; font-family: monospace; color: #0284c7;">title</td>
+                    <td style="padding: 6px 10px;">String</td>
+                    <td style="padding: 6px 10px; color: #64748b;">"Our Anniversary"</td>
+                    <td style="padding: 6px 10px;">大标题</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">startDate</td>
-                    <td style="padding: 10px;">String</td>
-                    <td style="padding: 10px; color: #64748b;">"2023-01-01"</td>
-                    <td style="padding: 10px;">相识日或重要日期的起始时间(格式为 YYYY-MM-DD)，将用于计算纪念过去了多少天</td>
+                    <td style="padding: 6px 10px; font-family: monospace; color: #0284c7;">startDate</td>
+                    <td style="padding: 6px 10px;">String</td>
+                    <td style="padding: 6px 10px; color: #64748b;">"2023-01-01"</td>
+                    <td style="padding: 6px 10px;">起始时间日期 (格式 YYYY-MM-DD)</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">names</td>
-                    <td style="padding: 10px;">Array&lt;String&gt;</td>
-                    <td style="padding: 10px; color: #64748b;">["Alice", "Bob"]</td>
-                    <td style="padding: 10px;">页面中央显示的双方姓名或昵称数组（建议长度2）</td>
+                    <td style="padding: 6px 10px; font-family: monospace; color: #0284c7;">names</td>
+                    <td style="padding: 6px 10px;">Array</td>
+                    <td style="padding: 6px 10px; color: #64748b;">["Alice", "Bob"]</td>
+                    <td style="padding: 6px 10px;">双方姓名数组（限2个元素）</td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">message</td>
-                    <td style="padding: 10px;">String</td>
-                    <td style="padding: 10px; color: #64748b;">"Thank you for everything."</td>
-                    <td style="padding: 10px;">计时器底部陪伴语或宣言</td>
+                    <td style="padding: 6px 10px; font-family: monospace; color: #0284c7;">message</td>
+                    <td style="padding: 6px 10px;">String</td>
+                    <td style="padding: 6px 10px; color: #64748b;">"Thank you for everything."</td>
+                    <td style="padding: 6px 10px;">底部宣言</td>
                 </tr>
             </tbody>
         </table>
 
-        <h4 style="margin: 20px 0 10px 0;">[推入 KV] 完整组合 JSON 示例</h4>
-        <pre
-            style="background: #282c34; padding: 15px; border-radius: 6px; font-family: monospace; color: #abb2bf; overflow-x: auto; margin:0;">
+        <div style="position: relative;">
+            <button onclick="copyJson('json-anni')"
+                style="position: absolute; right: 10px; top: 10px; padding: 4px 8px; font-size: 11px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; background: #fff;">📋
+                复制示例</button>
+            <pre id="json-anni"
+                style="background: #282c34; padding: 12px; border-radius: 6px; font-family: monospace; color: #abb2bf; margin:0; font-size: 12px; overflow-x: auto;">
 {
     "type": "anniversary",
     "data": {
         "title": "小明与小红的纪念日",
         "startDate": "2021-05-20",
         "names": ["Xiaoming", "Xiaohong"],
-        "message": "一直一直在一起吧、无论未来多久。"
+        "message": "一直在一起吧。"
     }
 }
 </pre>
+        </div>
     </div>
 
     <!-- Future expansions can go here -->
     <div
-        style="background: #f8f9fa; text-align: center; padding: 15px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; font-size: 0.9em;">
-        💡 本文档随着新模版的研发和入库会自动追加（如增加照片墙墙、烟花特效等模板后会一并更新于此）。
+        style="background: #f8f9fa; text-align: center; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 6px; color: #64748b; font-size: 12px;">
+        （新模板参数将持续补充至此列表）
     </div>
+
+    <script>
+        function copyJson(id) {
+            var text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("已复制 JSON 示例代码！");
+            }).catch(err => {
+                alert("复制失败");
+            });
+        }
+    </script>
 </div>

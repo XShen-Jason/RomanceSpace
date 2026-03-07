@@ -1,21 +1,19 @@
 <div
     style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
 
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🔌 KV 配置中心同步 API</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🔌 KV 配置同步 API</h1>
 
-    <p>本文档专为 <strong>主平台开发者</strong> 编写。讲解了主平台如何通过 Cloudflare KV 与 RomanceSpace Worker (边缘渲染引擎) 进行数据联通。</p>
+    <p>本文档说明了主站如何与前端展示页面库（KV）连接并传递数据。</p>
 
-    <h2 style="color: #d35400; margin-top: 30px;">1. 业务交互流程与预设值逻辑</h2>
+    <h2 style="color: #d35400; margin-top: 30px;">1. 业务交互流程</h2>
     <div
         style="background: #fdfae6; padding: 15px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 20px;">
-        <p style="margin-top: 0;">很多模板在开发时已经内置了**默认值**。用户领取专属域名并分配某款模版时，不需要立刻填写所有信息，页面也能依据默认值正常渲染。</p>
-        <p style="font-weight: bold; margin-bottom: 5px; color: #d35400;">推荐的业务交互流程：</p>
         <ol style="margin-top: 0;">
-            <li><strong>零配置开通：</strong> 用户在主站（Next.js）挑选并领取一个模版（通过免费次数或者购买），获得类似 <code>xiaoming.885201314.xyz</code>
-                的专属域名。主站此时只需往 KV 发送最基础的 JSON（仅包含 <code>type</code> 或少量必须字段），模版即可呈现默认样貌。</li>
-            <li><strong>升级/消耗次数定制：</strong> 当用户希望个性化模版（例如上传照片、修改标题、背景音乐等），触发平台上的“去定制/升级”按钮（可能消耗免费配置次数或进行付费）。</li>
-            <li><strong>重新入库 (Push to KV)：</strong> 用户提交定制表单后，Next.js 主站发起 HTTP 请求，将完整的配置数据覆盖至 KV 中的同名键 `xiaoming`
-                下，网页即刻生效新内容。</li>
+            <li><strong>注册与选定：</strong> 用户注册后如果选择了模板，首次可以领取一个专属的子域名（如 <code>xiaoming.885201314.xyz</code>）。主站向 KV
+                发送最基础的模版标识（<code>type</code>），页面将使用模板默认值渲染。</li>
+            <li><strong>定制内容：</strong> 用户升级或使用免费次数想要修改模版内容时（如修改文字、图片），在主站进行表单填写。</li>
+            <li><strong>数据更新：</strong> 用户提交后，主站发起接口请求，将用户填写的全新定制内容（包含完整的 <code>type</code> 和 <code>data</code>）保存到 KV
+                的对应域名记录下。网页将在下次访问时即刻展示更新后的内容。</li>
         </ol>
     </div>
 
@@ -26,14 +24,14 @@
             style="position: absolute; top: 15px; right: 15px; background: #2c3e50; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #fff; transition: background 0.2s;">📋
             复制 Markdown文档</button>
 
-        <h2 style="color: #27ae60; margin-top: 0; margin-bottom: 5px;">[PUT] 写入/更新用户项目配置</h2>
-        <p style="color: #64748b; font-size: 0.9em; margin-top: 0;">创建或全量覆盖边缘引擎 KV 中的配置记录。</p>
+        <h2 style="color: #27ae60; margin-top: 0; margin-bottom: 5px;">[PUT] 写入/更新配置记录</h2>
+        <p style="color: #64748b; font-size: 0.9em; margin-top: 0;">用于创建新的域名关联，或更新已有子域名的对应展示内容。</p>
 
         <h4 style="margin: 20px 0 10px 0;">请求 URL</h4>
         <div
             style="background: #f1f5f9; padding: 10px; border-radius: 4px; font-family: monospace; color: #ef4444; word-break: break-all;">
             PUT
-            https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{项目标识(即子域名前缀)}
+            https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{子域名前缀}
         </div>
 
         <h4 style="margin: 20px 0 10px 0;">请求 Headers</h4>
@@ -43,7 +41,7 @@
             <li>Content-Type: application/json</li>
         </ul>
 
-        <h4 style="margin: 20px 0 10px 0;">Body Params (JSON)</h4>
+        <h4 style="margin: 20px 0 10px 0;">参数 (JSON)</h4>
         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9em; margin-bottom: 20px;">
             <thead>
                 <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
@@ -58,34 +56,34 @@
                     <td style="padding: 10px; font-family: monospace; color: #0284c7;">type</td>
                     <td style="padding: 10px;">String</td>
                     <td style="padding: 10px; color: #ef4444;">是</td>
-                    <td style="padding: 10px;">关联的模板名。例如 <code>love_letter</code> 或 <code>anniversary</code></td>
+                    <td style="padding: 10px;">模板名代号。如 <code>love_letter</code> 或 <code>anniversary</code></td>
                 </tr>
                 <tr style="border-bottom: 1px solid #e2e8f0;">
                     <td style="padding: 10px; font-family: monospace; color: #0284c7;">data</td>
                     <td style="padding: 10px;">Object</td>
                     <td style="padding: 10px; color: #10b981;">否</td>
-                    <td style="padding: 10px;">传递给模版的个性化定制数据。不传则代表使用模板自带默认值</td>
+                    <td style="padding: 10px;">用户定制的参数数据。不传或传空时，模板将渲染自身的默认内容</td>
                 </tr>
             </tbody>
         </table>
 
-        <h4 style="margin: 20px 0 10px 0;">Body Payload 示例</h4>
+        <h4 style="margin: 20px 0 10px 0;">示例</h4>
         <pre
-            style="background: #282c34; padding: 15px; border-radius: 6px; font-family: monospace; color: #abb2bf; overflow-x: auto; margin:0;">
+            style="background: #282c34; padding: 10px; border-radius: 6px; font-family: monospace; color: #abb2bf; overflow-x: auto; margin:0; font-size: 13px;">
 {
   "type": "love_letter",
   "data": {
     "title": "To Xiaohong",
     "sender": "Xiaoming",
     "receiver": "Xiaohong",
-    "paragraphs": ["You are the apple of my eye.", "I love you forever!"]
+    "paragraphs": ["You are the apple of my eye.", "I love you!"]
   }
 }
         </pre>
 
         <h4 style="margin: 20px 0 10px 0;">响应 <code>HTTP 200 OK</code></h4>
         <pre
-            style="background: #282c34; padding: 15px; border-radius: 6px; font-family: monospace; color: #98c379; overflow-x: auto; margin:0;">
+            style="background: #282c34; padding: 10px; border-radius: 6px; font-family: monospace; color: #98c379; overflow-x: auto; margin:0; font-size: 13px;">
 {
   "result": null,
   "success": true,
@@ -98,22 +96,22 @@
 
     <!-- 隐藏的纯 Markdown 文本框，用于复制 -->
     <textarea id="api-md" style="display: none;">
-### 创建/更新边缘引擎 KV 配置记录
+### 创建/更新配置记录
 
-**请求 URL** (由 Cloudflare 提供支持)
-`PUT https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{项目标识(即子域名前缀)}`
+**请求 URL**
+`PUT https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{子域名前缀}`
 
 **请求 Headers:**
 - `Authorization: Bearer [CF_API_TOKEN]`
 - `Content-Type: application/json`
 
-**Body Params (JSON):**
+**参数 (JSON):**
 | 字段 | 类型 | 必填 | 描述 |
 | --- | --- | --- | --- |
-| type | String | 是 | 关联的模板名。目前支持 `love_letter` 或 `anniversary` |
-| data | Object | 否 | 传递给模版的个性化定制数据。不传则代表使用模板自带默认值 |
+| type | String | 是 | 模板名代号。如 `love_letter` 或 `anniversary` |
+| data | Object | 否 | 用户定制的参数数据。不传或传空时，模板将渲染自身的默认内容 |
 
-**Body Payload 示例 (Love Letter):**
+**示例:**
 ```json
 {
   "type": "love_letter",
@@ -121,7 +119,7 @@
     "title": "To Xiaohong",
     "sender": "Xiaoming",
     "receiver": "Xiaohong",
-    "paragraphs": ["You are the apple of my eye.", "I love you forever!"]
+    "paragraphs": ["You are the apple of my eye.", "I love you!"]
   }
 }
 ```
@@ -141,13 +139,12 @@
     <script>
         function copyMd() {
             var copyText = document.getElementById("api-md");
-            // 将 display 临时切换为 block 才能选中，然后恢复
             copyText.style.display = "block";
             copyText.select();
             copyText.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(copyText.value).then(() => {
                 copyText.style.display = "none";
-                alert("已成功复制接口对接文档（Markdown格式）！\\n可直接粘贴飞书/语雀/微信中");
+                alert("已成功复制对接文档（Markdown格式）！");
             }).catch(err => {
                 copyText.style.display = "none";
                 alert("复制失败，请重试！");
