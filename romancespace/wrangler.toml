@@ -10,9 +10,9 @@ routes = [
   { pattern = "*.romancespace.885201314.xyz", custom_domain = true }
 ]
 
-# [[kv_namespaces]]
-# binding = "PROJECT_ROUTES"
-# id = "your-kv-namespace-id"
+[[kv_namespaces]]
+binding = "PROJECT_ROUTES"
+id = "c32263916229449ba9a062df60185b81"
 
 # [[d1_databases]]
 # binding = "DB"

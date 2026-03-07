@@ -1,0 +1,76 @@
+<div style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
+    
+    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🛠️ RomanceSpace 主引挚 (Worker) 开发与集成指南</h1>
+
+    <p>这份文档面向<strong>后端开发人员</strong>与<strong>前端页面开发者</strong>，阐述了 RomanceSpace 边缘 Serverless 引擎的核心架构，以及外部系统如何与该引擎进行数据交互。</p>
+
+    <h2 style="color: #d35400; margin-top: 30px;">1. 架构总览</h2>
+    <p>RomanceSpace 的核心用户项目分发基于 <strong>Cloudflare Worker</strong> 和 <strong>Cloudflare KV</strong>（键值对存储）。</p>
+    <ul>
+        <li><strong>请求链路：</strong> 用户访问 <code>[项目ID].romancespace.xxx</code> -> 触发 Cloudflare Worker -> 取出子域名 <code>[项目ID]</code> -> 查询 KV 数据库找到配置 -> 根据 <code>type</code> 动态选择项目模版 -> 返回渲染后的 HTML。</li>
+        <li><strong>优势：</strong> 全球边缘节点渲染，极速响应，前后端解耦。</li>
+    </ul>
+
+    <h2 style="color: #27ae60; margin-top: 30px;">2. 后端开发：远端数据库的 KV 同步 API</h2>
+    <p>当用户在您的主站（如 MySQL/PostgreSQL）购买并定制了一个表白页面或纪念日页面时，您的服务端<strong>必须</strong>调用 Cloudflare API 将这份数据下发到 KV 存储中。这样边缘节点才能读取到最新配置。</p>
+    
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #27ae60; overflow-x: auto;">
+        <h4 style="margin: 0 0 10px 0;">Cloudflare KV Write API</h4>
+        <p style="margin: 0;"><strong>Endpoint (PUT):</strong></p>
+        <code style="background: #eee; padding: 2px 5px;">https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{项目标识(如xiaoming)}</code>
+        
+        <p style="margin: 10px 0 0 0;"><strong>Headers:</strong></p>
+        <pre style="margin: 5px 0;">Authorization: Bearer [您的 CF API Token]
+Content-Type: application/json</pre>
+
+        <p style="margin: 10px 0 0 0;"><strong>Body (Payload 规范):</strong></p>
+        <pre style="margin: 5px 0; color: #d63384;">
+{
+    "type": "love_letter", // 对应 src/projects/ 下的文件夹名称
+    "data": { // 任意传递给该模版的 JSON 数据参数
+        "title": "To 某某",
+        "sender": "小明",
+        "receiver": "小红",
+        "paragraphs": ["这是第一段话", "这是第二段话"]
+    }
+}
+        </pre>
+    </div>
+
+    <h2 style="color: #2980b9; margin-top: 30px;">3. 前端开发：如何新增一个项目模版</h2>
+    <p>如果您想为平台开发一款全新的功能页面（例如：生日祝福网页），请遵循以下目录约定：</p>
+    
+    <ol>
+        <li>
+            <strong>创建目录</strong>：在 <code>romancespace/src/projects/</code> 下新建您的项目文件夹。例如 <code>birthday/</code>。
+        </li>
+        <li>
+            <strong>编写主逻辑</strong>：在您的文件夹中新建 <code>index.js</code> 并导出一个名为 <code>render(config)</code> 的函数。
+        </li>
+        <li>
+            <strong>注册组件</strong>：前往 <code>romancespace/src/index.js</code>，在顶部 <code>import</code> 您的新目录，并将其加入到 <code>PROJECT_REGISTRY</code> 字典中。
+        </li>
+    </ol>
+    
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #2980b9;">
+        <p style="font-weight: bold; margin-top: 0;">src/projects/birthday/index.js (样例):</p>
+        <pre style="margin: 0; color: #333;">
+export function render(config) {
+    const { name = "Friend", age = 18 } = config;
+    
+    // 务必返回一段完整的 HTML 字符串
+    return `
+        &lt;html&gt;
+            &lt;body&gt;
+                &lt;h1&gt;Happy ${age}th Birthday, ${name}!&lt;/h1&gt;
+            &lt;/body&gt;
+        &lt;/html&gt;
+    `;
+}
+        </pre>
+    </div>
+
+    <div style="margin-top: 40px; text-align: center; color: #888; font-size: 0.9em; border-top: 1px solid #eaeaea; padding-top: 20px;">
+        RomanceSpace Architecture Documentation &copy; 2026
+    </div>
+</div>

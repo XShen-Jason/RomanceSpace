@@ -1,58 +1,75 @@
 /**
- * RomanceSpace Cloudflare Worker Entry Point
- * 
- * 此代码架构用于拦截子域名请求，并将其分发到对应的项目模板渲染引擎。
+ * RomanceSpace Main Edge Router
+ * Path: romancespace/src/index.js
  */
+
+// Import all supported project templates statically for the edge environment
+import * as loveLetter from './projects/love_letter/index.js';
+import * as anniversary from './projects/anniversary/index.js';
+
+// Map database 'type' strings to the loaded javascript modules
+const PROJECT_REGISTRY = {
+  'love_letter': loveLetter,
+  'anniversary': anniversary
+};
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const hostname = url.hostname;
+    const host = url.hostname; // e.g., xiaoming.romancespace.885201314.xyz
 
-    // 假设平台主域名是 romancespace.com
-    // 如果是主域名访问，可以返回主平台介绍页或重定向到注册页
-    if (hostname === "romancespace.com" || hostname === "www.romancespace.com") {
-      return new Response("欢迎来到 RomanceSpace 主平台！", { status: 200 });
+    // 1. Extract the subdomain identifier
+    // Simplified extraction for domains like [subdomain].romancespace.[tld]
+    const parts = host.split('.');
+    const isCustomDomain = host.includes('romancespace.885201314.xyz');
+
+    // Default to a fallback if it's the root domain or workers.dev, just for testing
+    let projectId = parts[0];
+
+    if (isCustomDomain && parts.length > 3) {
+      projectId = parts[0];
+    } else if (host === 'romancespace.885201314.xyz' || host.includes('workers.dev')) {
+      return new Response("欢迎来到 RomanceSpace 主平台！请输入您的专属访问链接。", {
+        headers: { "Content-Type": "text/html;charset=UTF-8" }
+      });
     }
 
-    // 提取子域名
-    // 例如：xiaoming.romancespace.com -> subDomain = xiaoming
-    const subDomain = hostname.split('.')[0];
+    // 2. Fetch routing configuration from Cloudflare KV
+    // The remote database synced this data `{ type: '...', data: {...} }` using CF API
+    let projectConfigJSON = await env.PROJECT_ROUTES.get(projectId);
 
+    if (!projectConfigJSON) {
+      return new Response(`
+                <h1 style="text-align:center; margin-top: 50px; font-family: sans-serif;">
+                    404 Not Found
+                </h1>
+                <p style="text-align:center; color: #666; font-family: sans-serif;">
+                    Project '${projectId}' does not exist or has expired.
+                </p>
+             `, {
+        status: 404,
+        headers: { "Content-Type": "text/html;charset=UTF-8" }
+      });
+    }
+
+    // 3. Render the specific project template
     try {
-      // 1. 从 KV 中查询该子域名的配置参数
-      // const projectConfig = await env.PROJECT_ROUTES.get(subDomain, { type: "json" });
-      
-      // MOCK 模拟逻辑
-      let projectConfig = null;
-      if (subDomain === "demo") {
-        projectConfig = { type: "love_letter", title: "致最爱的你", content: "..." };
+      const config = JSON.parse(projectConfigJSON);
+      const templateModule = PROJECT_REGISTRY[config.type];
+
+      if (!templateModule) {
+        throw new Error(`Unsupported project type: ${config.type}`);
       }
 
-      // 如果未找到该子域名项目
-      if (!projectConfig) {
-        return new Response("项目不存在或未配置", { status: 404 });
-      }
+      // Execute the specific project's render function
+      const htmlStream = templateModule.render(config.data || {});
 
-      // 2. 根据项目类型渲染页面
-      const htmlContent = renderTemplate(projectConfig);
-      
-      return new Response(htmlContent, {
+      return new Response(htmlStream, {
         headers: { "Content-Type": "text/html;charset=UTF-8" }
       });
 
     } catch (err) {
-      return new Response("Serve Error: " + err.message, { status: 500 });
+      return new Response(`Engine Error: ${err.message}`, { status: 500 });
     }
-  }
+  },
 };
-
-/**
- * 模板渲染引擎桩函数
- */
-function renderTemplate(config) {
-  if (config.type === "love_letter") {
-    return `<!DOCTYPE html><html><body><h1>${config.title}</h1><p>这是一个测试模板页面。</p></body></html>`;
-  }
-  return `<h1>默认页面</h1>`;
-}
