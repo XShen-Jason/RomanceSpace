@@ -55,22 +55,19 @@ export default {
     <p>您的专属边缘项目引擎系统。输入已配置好的专属三级域名以访问具体项目。</p>
     
     <div class="grid">
-      <a href="https://xiaoming.romancespace.885201314.xyz" style="text-decoration:none; color:inherit;">
-        <div class="card">
-          <h2>💌 表白信模版</h2>
-          <p>适合用于向心仪的人传达情感。支持定制发信人、收信人、长段落文字以及背景音乐。</p>
-          <span class="badge">分类: love_letter</span>
-          <div style="margin-top: 15px; color: #d6336c; font-size: 0.9em; font-weight: bold;">👉 点击体验 (以 xiaoming 为例)</div>
-        </div>
-      </a>
-      <a href="https://anniversary-demo.romancespace.885201314.xyz" style="text-decoration:none; color:inherit;">
-        <div class="card">
-          <h2>🎉 纪念日倒数模版</h2>
-          <p>适合情侣或好友用于记录在一起的天数，或者距离下一次重要节日的倒数时间。</p>
-          <span class="badge">分类: anniversary</span>
-          <div style="margin-top: 15px; color: #d6336c; font-size: 0.9em; font-weight: bold;">(示例尚未配置 KV，点击演示系统默认处理)</div>
-        </div>
-      </a>
+      <div class="card">
+        <h2>💌 表白信模版</h2>
+        <p>适合用于向心仪的人传达情感。支持定制发信人、收信人、长段落文字以及背景音乐。</p>
+        <span class="badge">分类: love_letter</span>
+        <div style="margin-top: 15px; color: #d6336c; font-size: 0.9em; font-weight: bold;">说明: 此模板可被绑定到您的任意专属三级域名 (如: xiaoming.romancespace...)</div>
+        <a href="https://xiaoming.romancespace.885201314.xyz" style="display:block; margin-top: 10px; color: #3b82f6; text-decoration: none; font-size: 0.9em;">👉 点击查看绑定了该模板的 "xiaoming" 示例</a>
+      </div>
+      <div class="card">
+        <h2>🎉 纪念日倒数模版</h2>
+        <p>适合情侣或好友用于记录在一起的天数，或者距离下一次重要节日的倒数时间。</p>
+        <span class="badge">分类: anniversary</span>
+        <div style="margin-top: 15px; color: #d6336c; font-size: 0.9em; font-weight: bold;">说明: 此模板可被绑定到您的任意专属三级域名 (如: love.romancespace...)</div>
+      </div>
     </div>
   </div>
 </body>
