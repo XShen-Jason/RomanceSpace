@@ -186,7 +186,7 @@
             </li>
             <li><strong>域名管理</strong>
                 <ul>
-                    <li>子域名领取校验（检查是否已被占用）</li>
+                    <li>子域名领取校验（选定模板后才能绑定，并检查是否已被占用）</li>
                     <li>保存 subdomain → 项目映射表到数据库</li>
                 </ul>
             </li>
@@ -238,11 +238,10 @@
 
         <h2>4️⃣ 服务器与 CF 的通信</h2>
         <ol>
-            <li>用户在平台创建或修改项目</li>
-            <li>服务器写数据库并校验合法性</li>
-            <li>服务器调用 Cloudflare KV API，将映射写入 KV</li>
-            <li>Worker 读取 KV 渲染页面</li>
-            <li>用户访问子域名即可获取最新页面</li>
+            <li>用户在平台首先选择某个小项目模板</li>
+            <li>用户输入想要的子域名前缀，服务器进行<strong>查重校验</strong></li>
+            <li>通过后，服务器本地写数据库保存映射，调用 KV API 将域名与模板信息绑定推送至 CF</li>
+            <li>最终生成的专属链接即可对外访问，Worker 读取 KV 渲染页面</li>
         </ol>
         <blockquote>核心逻辑：<strong>服务器写，Worker 读</strong>，服务器不参与每次访问。</blockquote>
 
