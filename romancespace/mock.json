@@ -1,12 +1,12 @@
 {
-    "type": "love_letter",
+    "type": "anniversary",
     "data": {
-        "title": "To Xiaohong",
-        "sender": "Xiaoming",
-        "receiver": "Xiaohong",
-        "paragraphs": [
-            "You are the apple of my eye.",
-            "I love you forever!"
+        "title": "Our Anniversary",
+        "startDate": "2023-01-01",
+        "message": "Thank you for being with me all these days.",
+        "names": [
+            "Xiaoming",
+            "Xiaohong"
         ]
     }
 }
