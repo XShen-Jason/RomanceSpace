@@ -1,32 +1,103 @@
 <div
     style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
 
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🔌 API 接口对接规范</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🔌 KV 配置中心同步 API</h1>
 
-    <p>本文档专为 <strong>Next.js 主平台开发者</strong> 编写。讲解了主平台如何通过 Cloudflare KV 与 RomanceSpace Worker (边缘渲染引擎) 进行数据联通。</p>
+    <p>本文档专为 <strong>主平台开发者</strong> 编写。讲解了主平台如何通过 Cloudflare KV 与 RomanceSpace Worker (边缘渲染引擎) 进行数据联通。</p>
 
-    <h2 style="color: #d35400; margin-top: 30px;">1. 业务全链路流程图解</h2>
+    <h2 style="color: #d35400; margin-top: 30px;">1. 业务交互流程与预设值逻辑</h2>
     <div
         style="background: #fdfae6; padding: 15px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 20px;">
+        <p style="margin-top: 0;">很多模板在开发时已经内置了**默认值**。用户领取专属域名并分配某款模版时，不需要立刻填写所有信息，页面也能依据默认值正常渲染。</p>
+        <p style="font-weight: bold; margin-bottom: 5px; color: #d35400;">推荐的业务交互流程：</p>
         <ol style="margin-top: 0;">
-            <li><strong>挑选与领取 (Next.js)：</strong> 用户在主站注册，并选择心仪的模板（如：情书 <code>love_letter</code>），确立自己的专属三级域名前缀（如
-                <code>xiaoming</code>）。</li>
-            <li><strong>初始化填表 (Next.js)：</strong> 用户填写对应模板需要的文案、名字、日期等信息。</li>
-            <li><strong>数据推库 (Next.js -> CF KV)：</strong> Next.js 后端发起 HTTP 请求，将包含 <code>type</code> 和 <code>data</code>
-                的 JSON 对象存入 Cloudflare KV，键名为 <code>xiaoming</code>。</li>
-            <li><strong>终端访问 (Browser -> Worker)：</strong> 用户访问 <code>xiaoming.885201314.xyz</code>，Worker 拦截后从 KV
-                取出数据并渲染出完整网页。</li>
-            <li><strong>后续修改 (Next.js -> CF KV)：</strong> 用户在主站修改了文案，Next.js 再次调用接口全量覆盖 KV 中的该条记录即可实时生效。</li>
+            <li><strong>零配置开通：</strong> 用户在主站（Next.js）挑选并领取一个模版（通过免费次数或者购买），获得类似 <code>xiaoming.885201314.xyz</code>
+                的专属域名。主站此时只需往 KV 发送最基础的 JSON（仅包含 <code>type</code> 或少量必须字段），模版即可呈现默认样貌。</li>
+            <li><strong>升级/消耗次数定制：</strong> 当用户希望个性化模版（例如上传照片、修改标题、背景音乐等），触发平台上的“去定制/升级”按钮（可能消耗免费配置次数或进行付费）。</li>
+            <li><strong>重新入库 (Push to KV)：</strong> 用户提交定制表单后，Next.js 主站发起 HTTP 请求，将完整的配置数据覆盖至 KV 中的同名键 `xiaoming`
+                下，网页即刻生效新内容。</li>
         </ol>
     </div>
 
-    <h2 style="color: #27ae60; margin-top: 30px;">2. 核心 API 规范大全</h2>
-    <p>您可以直接点击代码框右上角复制 Markdown 格式文档给负责对接的开发同事查阅。</p>
+    <!-- START API DISPLAY -->
+    <div
+        style="position: relative; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); background: #ffffff;">
+        <button onclick="copyMd()"
+            style="position: absolute; top: 15px; right: 15px; background: #2c3e50; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #fff; transition: background 0.2s;">📋
+            复制 Markdown文档</button>
 
-    <div style="position: relative; margin-top: 20px;">
-        <h4 style="margin: 0 0 10px 0; color: #1e6091;">[PUT] 写入/更新用户项目配置</h4>
-        <textarea id="api-md" readonly
-            style="width: 100%; height: 350px; background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; border: none; resize: vertical;">
+        <h2 style="color: #27ae60; margin-top: 0; margin-bottom: 5px;">[PUT] 写入/更新用户项目配置</h2>
+        <p style="color: #64748b; font-size: 0.9em; margin-top: 0;">创建或全量覆盖边缘引擎 KV 中的配置记录。</p>
+
+        <h4 style="margin: 20px 0 10px 0;">请求 URL</h4>
+        <div
+            style="background: #f1f5f9; padding: 10px; border-radius: 4px; font-family: monospace; color: #ef4444; word-break: break-all;">
+            PUT
+            https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{项目标识(即子域名前缀)}
+        </div>
+
+        <h4 style="margin: 20px 0 10px 0;">请求 Headers</h4>
+        <ul
+            style="background: #f1f5f9; padding: 10px 10px 10px 30px; border-radius: 4px; font-family: monospace; color: #334155; margin: 0;">
+            <li>Authorization: Bearer [CF_API_TOKEN]</li>
+            <li>Content-Type: application/json</li>
+        </ul>
+
+        <h4 style="margin: 20px 0 10px 0;">Body Params (JSON)</h4>
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9em; margin-bottom: 20px;">
+            <thead>
+                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                    <th style="padding: 10px;">字段</th>
+                    <th style="padding: 10px;">类型</th>
+                    <th style="padding: 10px;">必填</th>
+                    <th style="padding: 10px;">描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">type</td>
+                    <td style="padding: 10px;">String</td>
+                    <td style="padding: 10px; color: #ef4444;">是</td>
+                    <td style="padding: 10px;">关联的模板名。例如 <code>love_letter</code> 或 <code>anniversary</code></td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">data</td>
+                    <td style="padding: 10px;">Object</td>
+                    <td style="padding: 10px; color: #10b981;">否</td>
+                    <td style="padding: 10px;">传递给模版的个性化定制数据。不传则代表使用模板自带默认值</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4 style="margin: 20px 0 10px 0;">Body Payload 示例</h4>
+        <pre
+            style="background: #282c34; padding: 15px; border-radius: 6px; font-family: monospace; color: #abb2bf; overflow-x: auto; margin:0;">
+{
+  "type": "love_letter",
+  "data": {
+    "title": "To Xiaohong",
+    "sender": "Xiaoming",
+    "receiver": "Xiaohong",
+    "paragraphs": ["You are the apple of my eye.", "I love you forever!"]
+  }
+}
+        </pre>
+
+        <h4 style="margin: 20px 0 10px 0;">响应 <code>HTTP 200 OK</code></h4>
+        <pre
+            style="background: #282c34; padding: 15px; border-radius: 6px; font-family: monospace; color: #98c379; overflow-x: auto; margin:0;">
+{
+  "result": null,
+  "success": true,
+  "errors": [],
+  "messages": []
+}
+        </pre>
+    </div>
+    <!-- END API DISPLAY -->
+
+    <!-- 隐藏的纯 Markdown 文本框，用于复制 -->
+    <textarea id="api-md" style="display: none;">
 ### 创建/更新边缘引擎 KV 配置记录
 
 **请求 URL** (由 Cloudflare 提供支持)
@@ -40,7 +111,7 @@
 | 字段 | 类型 | 必填 | 描述 |
 | --- | --- | --- | --- |
 | type | String | 是 | 关联的模板名。目前支持 `love_letter` 或 `anniversary` |
-| data | Object | 是 | 传递给模版的业务数据内容（包含标题、日期等） |
+| data | Object | 否 | 传递给模版的个性化定制数据。不传则代表使用模板自带默认值 |
 
 **Body Payload 示例 (Love Letter):**
 ```json
@@ -65,19 +136,21 @@
   "messages": []
 }
 ```
-        </textarea>
-        <button onclick="copyMd()"
-            style="position: absolute; top: 35px; right: 10px; background: #fff; border: 1px solid #ccc; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; color: #333;">📋
-            复制 Markdown文档</button>
-    </div>
+    </textarea>
 
     <script>
         function copyMd() {
             var copyText = document.getElementById("api-md");
+            // 将 display 临时切换为 block 才能选中，然后恢复
+            copyText.style.display = "block";
             copyText.select();
-            copyText.setSelectionRange(0, 99999); /* For mobile devices */
+            copyText.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(copyText.value).then(() => {
-                alert("已复制 Markdown!");
+                copyText.style.display = "none";
+                alert("已成功复制接口对接文档（Markdown格式）！\\n可直接粘贴飞书/语雀/微信中");
+            }).catch(err => {
+                copyText.style.display = "none";
+                alert("复制失败，请重试！");
             });
         }
     </script>
