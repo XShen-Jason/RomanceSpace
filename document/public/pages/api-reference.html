@@ -1,0 +1,84 @@
+<div
+    style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
+
+    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🔌 API 接口对接规范</h1>
+
+    <p>本文档专为 <strong>Next.js 主平台开发者</strong> 编写。讲解了主平台如何通过 Cloudflare KV 与 RomanceSpace Worker (边缘渲染引擎) 进行数据联通。</p>
+
+    <h2 style="color: #d35400; margin-top: 30px;">1. 业务全链路流程图解</h2>
+    <div
+        style="background: #fdfae6; padding: 15px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 20px;">
+        <ol style="margin-top: 0;">
+            <li><strong>挑选与领取 (Next.js)：</strong> 用户在主站注册，并选择心仪的模板（如：情书 <code>love_letter</code>），确立自己的专属三级域名前缀（如
+                <code>xiaoming</code>）。</li>
+            <li><strong>初始化填表 (Next.js)：</strong> 用户填写对应模板需要的文案、名字、日期等信息。</li>
+            <li><strong>数据推库 (Next.js -> CF KV)：</strong> Next.js 后端发起 HTTP 请求，将包含 <code>type</code> 和 <code>data</code>
+                的 JSON 对象存入 Cloudflare KV，键名为 <code>xiaoming</code>。</li>
+            <li><strong>终端访问 (Browser -> Worker)：</strong> 用户访问 <code>xiaoming.885201314.xyz</code>，Worker 拦截后从 KV
+                取出数据并渲染出完整网页。</li>
+            <li><strong>后续修改 (Next.js -> CF KV)：</strong> 用户在主站修改了文案，Next.js 再次调用接口全量覆盖 KV 中的该条记录即可实时生效。</li>
+        </ol>
+    </div>
+
+    <h2 style="color: #27ae60; margin-top: 30px;">2. 核心 API 规范大全</h2>
+    <p>您可以直接点击代码框右上角复制 Markdown 格式文档给负责对接的开发同事查阅。</p>
+
+    <div style="position: relative; margin-top: 20px;">
+        <h4 style="margin: 0 0 10px 0; color: #1e6091;">[PUT] 写入/更新用户项目配置</h4>
+        <textarea id="api-md" readonly
+            style="width: 100%; height: 350px; background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; border: none; resize: vertical;">
+### 创建/更新边缘引擎 KV 配置记录
+
+**请求 URL** (由 Cloudflare 提供支持)
+`PUT https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{项目标识(即子域名前缀)}`
+
+**请求 Headers:**
+- `Authorization: Bearer [CF_API_TOKEN]`
+- `Content-Type: application/json`
+
+**Body Params (JSON):**
+| 字段 | 类型 | 必填 | 描述 |
+| --- | --- | --- | --- |
+| type | String | 是 | 关联的模板名。目前支持 `love_letter` 或 `anniversary` |
+| data | Object | 是 | 传递给模版的业务数据内容（包含标题、日期等） |
+
+**Body Payload 示例 (Love Letter):**
+```json
+{
+  "type": "love_letter",
+  "data": {
+    "title": "To Xiaohong",
+    "sender": "Xiaoming",
+    "receiver": "Xiaohong",
+    "paragraphs": ["You are the apple of my eye.", "I love you forever!"]
+  }
+}
+```
+
+**响应:**
+`HTTP 200 OK`
+```json
+{
+  "result": null,
+  "success": true,
+  "errors": [],
+  "messages": []
+}
+```
+        </textarea>
+        <button onclick="copyMd()"
+            style="position: absolute; top: 35px; right: 10px; background: #fff; border: 1px solid #ccc; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; color: #333;">📋
+            复制 Markdown文档</button>
+    </div>
+
+    <script>
+        function copyMd() {
+            var copyText = document.getElementById("api-md");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /* For mobile devices */
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                alert("已复制 Markdown!");
+            });
+        }
+    </script>
+</div>

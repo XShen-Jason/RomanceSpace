@@ -276,38 +276,52 @@
 
   <script>
     /*
-    ==================================
-    页面配置
-    新增页面只需要在这里添加
-    ==================================
-    */
-    /*
-    ==================================
-    页面配置 (按分类划分)
-    ==================================
-    */
+      ==================================
+      页面配置（全部分区重组）
+      ==================================
+      */
     const categories = [
       {
-        label: "🌎 全局与架构 (涉及整个项目)",
+        name: "📂 涉及运营的",
         pages: [
-          { title: "项目全局架构", file: "pages/architecture.html", icon: "🏗️" },
-          { title: "子域名系统设计", file: "pages/system.html", icon: "⚙️" }
+          {
+            title: "运营方案 & 定位",
+            file: "pages/operation.html",
+            icon: "📊"
+          }
         ]
       },
       {
-        label: "🚀 商业与运营策略 (涉及运营)",
+        name: "📂 涉及整个项目的",
         pages: [
-          { title: "平台运营方案与定位", file: "pages/operation.html", icon: "📊" }
+          {
+            title: "项目架构介绍",
+            file: "pages/architecture.html",
+            icon: "🏗️"
+          },
+          {
+            title: "子域名系统设计",
+            file: "pages/system.html",
+            icon: "⚙️"
+          }
         ]
       },
       {
-        label: "💻 研发与集成手册 (涉及技术实现)",
+        name: "📂 涉及技术实现的",
         pages: [
-          { title: "主平台与 Worker 数据连通 API", file: "pages/api-integration.html", icon: "🔌" },
-          { title: "Worker 引擎开发与集成指南", file: "pages/developer-guide.html", icon: "📖" }
+          {
+            title: "Worker 开发与集成指南",
+            file: "pages/developer-guide.html",
+            icon: "📖"
+          },
+          {
+            title: "API 接口对接规范",
+            file: "pages/api-reference.html",
+            icon: "🔌"
+          }
         ]
       }
-    ]
+    ];
 
     const menu = document.getElementById("menu")
     const viewer = document.getElementById("viewer")
@@ -327,17 +341,20 @@
       }
     }
 
-    // 初始化菜单
-    categories.forEach(category => {
-      // 1. 添加分类标签
-      const groupLabel = document.createElement("div");
-      groupLabel.className = "menu-label";
-      groupLabel.style.marginTop = "20px";
-      groupLabel.innerText = category.label;
-      menu.appendChild(groupLabel);
+    // 初始化菜单分组
+    let firstPageToLoad = null;
 
-      // 2. 添加该分类下的页面
-      category.pages.forEach(page => {
+    categories.forEach(cat => {
+      // 渲染分组标题
+      const label = document.createElement("div");
+      label.className = "menu-label";
+      label.innerText = cat.name;
+      menu.appendChild(label);
+
+      // 渲染旗下页面
+      cat.pages.forEach(page => {
+        if (!firstPageToLoad) firstPageToLoad = page;
+
         const div = document.createElement("div")
         div.className = "menu-item"
         div.dataset.file = page.file
@@ -349,11 +366,13 @@
         }
 
         menu.appendChild(div)
-      })
-    })
+      });
+    });
 
-    // 默认加载第一大类的第一页
-    loadPage(categories[0].pages[0])
+    // 默认加载可用分类的第一页
+    if (firstPageToLoad) {
+      loadPage(firstPageToLoad)
+    }
 
 
     /* 搜索功能 */
