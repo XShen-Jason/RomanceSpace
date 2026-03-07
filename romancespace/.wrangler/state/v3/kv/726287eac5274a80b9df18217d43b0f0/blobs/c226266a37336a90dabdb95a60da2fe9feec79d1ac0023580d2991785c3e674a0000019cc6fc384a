@@ -1,0 +1,12 @@
+{
+    "type": "love_letter",
+    "data": {
+        "title": "To Xiaohong",
+        "sender": "Xiaoming",
+        "receiver": "Xiaohong",
+        "paragraphs": [
+            "You are the apple of my eye.",
+            "I love you forever!"
+        ]
+    }
+}

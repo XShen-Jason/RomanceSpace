@@ -28,15 +28,54 @@ export default {
 
     if (isCustomDomain && parts.length > 3) {
       projectId = parts[0];
-    } else if (host === 'romancespace.885201314.xyz' || host.includes('workers.dev')) {
-      return new Response("欢迎来到 RomanceSpace 主平台！请输入您的专属访问链接。", {
+    } else if (host === 'romancespace.885201314.xyz' || host === 'romancespace.leeyukiho.workers.dev' || host.includes('workers.dev')) {
+      return new Response(`
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RomanceSpace - 项目模板库</title>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #fafafa; color: #333; margin: 0; padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh;}
+    .container { max-width: 800px; text-align: center; }
+    h1 { color: #d6336c; font-size: 2.5rem; margin-bottom: 0.5rem; }
+    p { color: #666; font-size: 1.1rem; margin-bottom: 3rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+    .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s; text-align: left;}
+    .card:hover { transform: translateY(-5px); }
+    .card h2 { color: #2c3e50; margin-top: 0; }
+    .card p { font-size: 0.95rem; line-height: 1.5; color: #7f8c8d; margin-bottom: 1rem; }
+    .badge { display: inline-block; background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💕 RomanceSpace</h1>
+    <p>您的专属边缘项目引擎系统。输入已配置好的专属三级域名以访问具体项目。</p>
+    
+    <div class="grid">
+      <div class="card">
+        <h2>💌 表白信模版</h2>
+        <p>适合用于向心仪的人传达情感。支持定制发信人、收信人、长段落文字以及背景音乐。</p>
+        <span class="badge">分类: love_letter</span>
+      </div>
+      <div class="card">
+        <h2>🎉 纪念日倒数模版</h2>
+        <p>适合情侣或好友用于记录在一起的天数，或者距离下一次重要节日的倒数时间。</p>
+        <span class="badge">分类: anniversary</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`, {
         headers: { "Content-Type": "text/html;charset=UTF-8" }
       });
     }
 
     // 2. Fetch routing configuration from Cloudflare KV
     // The remote database synced this data `{ type: '...', data: {...} }` using CF API
-    let projectConfigJSON = await env.PROJECT_ROUTES.get(projectId);
+    let projectConfigJSON = await env.ROMANCESPACE_KV.get(projectId);
 
     if (!projectConfigJSON) {
       return new Response(`

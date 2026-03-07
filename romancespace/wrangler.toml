@@ -11,8 +11,8 @@ routes = [
 ]
 
 [[kv_namespaces]]
-binding = "PROJECT_ROUTES"
-id = "c32263916229449ba9a062df60185b81"
+binding = "ROMANCESPACE_KV"
+id = "726287eac5274a80b9df18217d43b0f0"
 
 # [[d1_databases]]
 # binding = "DB"
