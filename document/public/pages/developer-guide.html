@@ -11,7 +11,8 @@
     <p>RomanceSpace 的核心用户项目分发基于 <strong>Cloudflare Worker</strong> 和 <strong>Cloudflare KV</strong>（键值对存储）。</p>
     <ul>
         <li><strong>请求链路：</strong> 用户访问 <code>[项目ID].romancespace.xxx</code> -> 触发 Cloudflare Worker -> 取出子域名
-            <code>[项目ID]</code> -> 查询 KV 数据库找到配置 -> 根据 <code>type</code> 动态选择项目模版 -> 返回渲染后的 HTML。</li>
+            <code>[项目ID]</code> -> 查询 KV 数据库找到配置 -> 根据 <code>type</code> 动态选择项目模版 -> 返回渲染后的 HTML。
+        </li>
         <li><strong>优势：</strong> 全球边缘节点渲染，极速响应，前后端解耦。</li>
     </ul>
 
@@ -24,7 +25,7 @@
         <h4 style="margin: 0 0 10px 0;">深入理解 KV 数据结构</h4>
         <p style="margin: 0;"><strong>什么是 KV 的 Key (键名)？</strong></p>
         <p style="margin: 5px 0 15px 0; color: #555;">在 Cloudflare KV 中，Key（键名）直接对应于用户将要访问的**专属子域名的前缀**。例如，如果我们设置一个 Key
-            为 <code>xiaoming</code>，那么系统就会将其绑定到三级域名访问地址：<code>xiaoming.romancespace.885201314.xyz</code>。</p>
+            为 <code>xiaoming</code>，那么系统就会将其绑定到三级域名访问地址：<code>xiaoming.885201314.xyz</code>。</p>
 
         <h4 style="margin: 0 0 10px 0;">Cloudflare KV Write API</h4>
         <p style="margin: 0;"><strong>Endpoint (PUT):</strong></p>

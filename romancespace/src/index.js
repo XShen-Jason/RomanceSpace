@@ -16,19 +16,31 @@ const PROJECT_REGISTRY = {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const host = url.hostname; // e.g., xiaoming.romancespace.885201314.xyz
+    const host = url.hostname;
+    const path = url.pathname;
 
-    // 1. Extract the subdomain identifier
-    // Simplified extraction for domains like [subdomain].romancespace.[tld]
-    const parts = host.split('.');
-    const isCustomDomain = host.includes('romancespace.885201314.xyz');
+    // 1. Direct Preview & Default Catalog Routing
+    if (host === 'romancespace.885201314.xyz' || host.includes('workers.dev')) {
 
-    // Default to a fallback if it's the root domain or workers.dev, just for testing
-    let projectId = parts[0];
+      // A. Handle /preview/xxx routes for templates
+      if (path.startsWith('/preview/')) {
+        const type = path.split('/')[2];
+        const templateModule = PROJECT_REGISTRY[type];
+        if (templateModule) {
+          // Supply basic mock data for default previews
+          let mockData = {};
+          if (type === 'love_letter') {
+            mockData = { title: "模板预览", sender: "发件人名字", receiver: "收件人名字", paragraphs: ["这是一段预览文字。", "你可以通过后台修改这些内容。"] };
+          } else if (type === 'anniversary') {
+            mockData = { title: "纪念日预览", startDate: "2023-01-01", message: "写下你想说的话", names: ["张三", "李四"] };
+          }
+          return new Response(templateModule.render(mockData), {
+            headers: { "Content-Type": "text/html;charset=UTF-8" }
+          });
+        }
+      }
 
-    if (isCustomDomain && parts.length > 3) {
-      projectId = parts[0];
-    } else if (host === 'romancespace.885201314.xyz' || host === 'romancespace.leeyukiho.workers.dev' || host.includes('workers.dev')) {
+      // B. Render default catalog
       return new Response(`
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -55,19 +67,22 @@ export default {
     <p>您的专属边缘项目引擎系统。输入已配置好的专属三级域名以访问具体项目。</p>
     
     <div class="grid">
-      <div class="card">
-        <h2>💌 表白信模版</h2>
-        <p>适合用于向心仪的人传达情感。支持定制发信人、收信人、长段落文字以及背景音乐。</p>
-        <span class="badge">分类: love_letter</span>
-        <div style="margin-top: 15px; color: #d6336c; font-size: 0.9em; font-weight: bold;">说明: 此模板可被绑定到您的任意专属三级域名 (如: xiaoming.romancespace...)</div>
-        <a href="https://xiaoming.romancespace.885201314.xyz" style="display:block; margin-top: 10px; color: #3b82f6; text-decoration: none; font-size: 0.9em;">👉 点击查看绑定了该模板的 "xiaoming" 示例</a>
-      </div>
-      <div class="card">
-        <h2>🎉 纪念日倒数模版</h2>
-        <p>适合情侣或好友用于记录在一起的天数，或者距离下一次重要节日的倒数时间。</p>
-        <span class="badge">分类: anniversary</span>
-        <div style="margin-top: 15px; color: #d6336c; font-size: 0.9em; font-weight: bold;">说明: 此模板可被绑定到您的任意专属三级域名 (如: love.romancespace...)</div>
-      </div>
+      <a href="/preview/love_letter" style="text-decoration:none; color:inherit;">
+        <div class="card">
+          <h2>💌 表白信模版</h2>
+          <p>适合用于向心仪的人传达情感。支持定制发信人、收信人、长段落文字以及背景音乐。</p>
+          <span class="badge">分类: love_letter</span>
+          <div style="margin-top: 15px; color: #d6336c; font-size: 0.9em; font-weight: bold;">👉 点击本地直接预览</div>
+        </div>
+      </a>
+      <a href="/preview/anniversary" style="text-decoration:none; color:inherit;">
+        <div class="card">
+          <h2>🎉 纪念日倒数模版</h2>
+          <p>适合情侣或好友用于记录在一起的天数，或者距离下一次重要节日的倒数时间。</p>
+          <span class="badge">分类: anniversary</span>
+          <div style="margin-top: 15px; color: #d6336c; font-size: 0.9em; font-weight: bold;">👉 点击本地直接预览</div>
+        </div>
+      </a>
     </div>
   </div>
 </body>
@@ -76,8 +91,13 @@ export default {
       });
     }
 
-    // 2. Fetch routing configuration from Cloudflare KV
-    // The remote database synced this data `{ type: '...', data: {...} }` using CF API
+    // 2. Custom Domain Subdomain Extraction
+    // Extract subdomain assuming the structure is strictly [projectId].885201314.xyz
+    const parts = host.split('.');
+    const projectId = parts[0];
+
+    // Fetch routing configuration from Cloudflare KV
+    // The remote database synced this data \`{ type: '...', data: {...} }\` using CF API
     let projectConfigJSON = await env.ROMANCESPACE_KV.get(projectId);
 
     if (!projectConfigJSON) {

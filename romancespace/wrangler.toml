@@ -7,7 +7,8 @@ compatibility_date = "2024-03-05"
 
 routes = [
   { pattern = "romancespace.885201314.xyz", custom_domain = true },
-  { pattern = "*.romancespace.885201314.xyz", zone_name = "885201314.xyz" }
+  { pattern = "*.885201314.xyz", zone_name = "885201314.xyz" },
+  { pattern = "xiaoming.885201314.xyz", custom_domain = true }
 ]
 
 [[kv_namespaces]]

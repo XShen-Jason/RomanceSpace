@@ -2,8 +2,9 @@
 
 ## 1. Cloudflare Domains and Environments
 - **Main Engine (Worker)**:
-  - Custom Domain (Active): `romancespace.885201314.xyz`
-  - Fallback/Dev Domain (Inactive): `romancespace.leeyukiho.workers.dev`
+  - Platform/Catalog Domain: `romancespace.885201314.xyz`
+  - User Project Domains: `[projectId].885201314.xyz` (e.g., `xiaoming.885201314.xyz`)
+  - Fallback/Dev Domain: `romancespace.leeyukiho.workers.dev`
 - **Documentation Site (Pages)**: 
   - Domain: `document.885201314.xyz` (and `*.pages.dev` aliases)
 
