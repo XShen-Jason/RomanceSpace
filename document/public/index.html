@@ -281,26 +281,31 @@
     新增页面只需要在这里添加
     ==================================
     */
-    const pages = [
+    /*
+    ==================================
+    页面配置 (按分类划分)
+    ==================================
+    */
+    const categories = [
       {
-        title: "运营方案 & 定位",
-        file: "pages/operation.html",
-        icon: "📊"
+        label: "🌎 全局与架构 (涉及整个项目)",
+        pages: [
+          { title: "项目全局架构", file: "pages/architecture.html", icon: "🏗️" },
+          { title: "子域名系统设计", file: "pages/system.html", icon: "⚙️" }
+        ]
       },
       {
-        title: "🛠️ Worker 开发与集成指南",
-        file: "pages/developer-guide.html",
-        icon: "📖"
+        label: "🚀 商业与运营策略 (涉及运营)",
+        pages: [
+          { title: "平台运营方案与定位", file: "pages/operation.html", icon: "📊" }
+        ]
       },
       {
-        title: "项目架构",
-        file: "pages/architecture.html",
-        icon: "🏗️"
-      },
-      {
-        title: "子域名系统设计",
-        file: "pages/system.html",
-        icon: "⚙️"
+        label: "💻 研发与集成手册 (涉及技术实现)",
+        pages: [
+          { title: "主平台与 Worker 数据连通 API", file: "pages/api-integration.html", icon: "🔌" },
+          { title: "Worker 引擎开发与集成指南", file: "pages/developer-guide.html", icon: "📖" }
+        ]
       }
     ]
 
@@ -323,22 +328,32 @@
     }
 
     // 初始化菜单
-    pages.forEach(page => {
-      const div = document.createElement("div")
-      div.className = "menu-item"
-      div.dataset.file = page.file
+    categories.forEach(category => {
+      // 1. 添加分类标签
+      const groupLabel = document.createElement("div");
+      groupLabel.className = "menu-label";
+      groupLabel.style.marginTop = "20px";
+      groupLabel.innerText = category.label;
+      menu.appendChild(groupLabel);
 
-      div.innerHTML = `<span class="menu-icon">${page.icon}</span> <span>${page.title}</span>`
+      // 2. 添加该分类下的页面
+      category.pages.forEach(page => {
+        const div = document.createElement("div")
+        div.className = "menu-item"
+        div.dataset.file = page.file
 
-      div.onclick = () => {
-        loadPage(page)
-      }
+        div.innerHTML = `<span class="menu-icon">${page.icon}</span> <span>${page.title}</span>`
 
-      menu.appendChild(div)
+        div.onclick = () => {
+          loadPage(page)
+        }
+
+        menu.appendChild(div)
+      })
     })
 
-    // 默认加载第一页
-    loadPage(pages[0])
+    // 默认加载第一大类的第一页
+    loadPage(categories[0].pages[0])
 
 
     /* 搜索功能 */
