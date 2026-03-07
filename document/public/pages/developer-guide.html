@@ -52,42 +52,76 @@ Content-Type: application/json</pre>
         </pre>
     </div>
 
-    <h2 style="color: #2980b9; margin-top: 30px;">3. 前端开发：如何新增一个项目模版</h2>
-    <p>如果您想为平台开发一款全新的功能页面（例如：生日祝福网页），请遵循以下目录约定：</p>
+    <h2 style="color: #8e44ad; margin-top: 30px;">3. Worker 主路由架构解析 (src/index.js)</h2>
+    <p>我们的 <code>src/index.js</code> 已经被剥离为一个纯粹的**“交通枢纽” (Router)**，它不包含任何具体页面的 UI 代码。它的执行流程如下：</p>
+    <div
+        style="background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; overflow-x: auto; margin-bottom: 20px;">
+        <pre style="margin: 0;">
+// 1. 域名分流 (Domain Splitting)
+// 如果访问的是 /preview/xxx，跳过数据库，直接调取本地模版进行强制预览。
+// 如果访问的是 document.885201314.xyz，原样转发给 Pages（文档中心）。
 
-    <ol>
-        <li>
-            <strong>创建目录</strong>：在 <code>romancespace/src/projects/</code> 下新建您的项目文件夹。例如 <code>birthday/</code>。
-        </li>
-        <li>
-            <strong>编写主逻辑</strong>：在您的文件夹中新建 <code>index.js</code> 并导出一个名为 <code>render(config)</code> 的函数。
-        </li>
-        <li>
-            <strong>注册组件</strong>：前往 <code>romancespace/src/index.js</code>，在顶部 <code>import</code> 您的新目录，并将其加入到
-            <code>PROJECT_REGISTRY</code> 字典中。
-        </li>
-    </ol>
+// 2. 提取特征 (Subdomain Extraction)
+// 从 xiaoming.885201314.xyz 中提取出 'xiaoming' 作为查库依据。
 
-    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #2980b9;">
-        <p style="font-weight: bold; margin-top: 0;">src/projects/birthday/index.js (样例):</p>
-        <pre style="margin: 0; color: #333;">
+// 3. 查阅数据 (KV Fetching)
+let projectConfigJSON = await env.ROMANCESPACE_KV.get('xiaoming');
+
+// 4. 模块挂载 (Module Mounting)
+const config = JSON.parse(projectConfigJSON);
+const templateModule = PROJECT_REGISTRY[config.type]; // 取出对应的代码包
+const htmlStream = templateModule.render(config.data); // 将变量塞入包中生成网页
+return new Response(htmlStream);
+        </pre>
+    </div>
+
+    <h2 style="color: #2980b9; margin-top: 30px;">4. 模版接入：如何将第三方网页变为 RomanceSpace 模版</h2>
+    <p>如果您从网上下载了好看的网页源码（或者您自己编写了一个 HTML/JS 小项目），并希望把它作为 RomanceSpace 的一个新模版供用户选择，您<strong>只需要负责第一步</strong>，剩下的都可以交给 AI
+        去配置：</p>
+
+    <div
+        style="background: #fdfae6; padding: 15px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 10px 0; color: #d35400;">您的工作：放置文件并包装函数</h4>
+        <ol style="margin-top: 0;">
+            <li>在 <code>romancespace/src/projects/</code> 下新建一个文件夹，比如 <code>new_project</code>。</li>
+            <li>在该文件夹中创建一个 <code>index.js</code>。</li>
+            <li>将您所有的 HTML、CSS 和脚本代码，作为<strong>字符串</strong>通过下面这个标准模版包裹起来：</li>
+        </ol>
+
+        <p style="font-weight: bold; margin: 15px 0 5px 0;">👇 小项目包装标准模版 (直接复制修改)：</p>
+        <pre
+            style="background: #f4f4f4; padding: 15px; border-radius: 6px; margin: 0; color: #333; overflow-x: auto; font-family: monospace; font-size: 0.9em;">
 export function render(config) {
-    const { name = "Friend", age = 18 } = config;
+    // 1. 这里是你可以接收的变量，设置好默认值
+    const { 
+        title = "默认标题", 
+        name = "默认名字" 
+    } = config;
     
-    // 务必返回一段完整的 HTML 字符串
+    // 2. 务必返回一段完整的 HTML 字符串，所有的内联 CSS 和 JS 都往里面塞
+    // 可以使用 \${变量名} 的语法把变量插进网页里
     return `
-        &lt;html&gt;
-            &lt;body&gt;
-                &lt;h1&gt;Happy ${age}th Birthday, ${name}!&lt;/h1&gt;
-            &lt;/body&gt;
-        &lt;/html&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;\${title}&lt;/title&gt;
+    &lt;style&gt; body { background: pink; } &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Hello, \${name}!&lt;/h1&gt;
+    &lt;script&gt; console.log("running"); &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
     `;
 }
         </pre>
     </div>
 
-    <div
-        style="margin-top: 40px; text-align: center; color: #888; font-size: 0.9em; border-top: 1px solid #eaeaea; padding-top: 20px;">
-        RomanceSpace Architecture Documentation &copy; 2026
+    <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; border-left: 4px solid #2980b9;">
+        <h4 style="margin: 0 0 10px 0; color: #1e6091;">AI 的工作：向引擎注册 </h4>
+        <p style="margin: 0;">当您放好文件后，您只需要告诉 AI：<strong>“我刚刚以新模版标准加入了一个叫 <code>new_project</code> 的模板文件夹，请你帮我更新
+                <code>src/index.js</code> 主文件并且把它注册到路由中。”</strong></p>
+        <p style="margin: 10px 0 0 0; color: #555; font-size: 0.9em;">AI 会自动帮您 <code>import</code> 并在
+            <code>PROJECT_REGISTRY</code> 中建立索引机制，这样该模块就彻底被系统接管可用了。</p>
     </div>
 </div>
