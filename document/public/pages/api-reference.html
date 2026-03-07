@@ -14,6 +14,14 @@
             PUT
             https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{分配给用户的子域名}
         </div>
+        <div
+            style="background: #e8f4fd; padding: 12px; border-radius: 6px; border: 1px dashed #3b82f6; margin: 15px 0; color: #1e40af; font-size: 13px;">
+            <strong>💡 域名是如何绑定成功的？（KV 存储原理）</strong><br>
+            在这个原生接口中，URL 最末尾的 <code style="background:#bfdbfe; color:#1e3a8a;">{分配给用户的子域名}</code> 本身就是写入 KV 数据库的
+            <strong>键 (Key)</strong>。<br>
+            而你在下方发送的 JSON 请求体 (Body)，则是存入数据库的 <strong>值 (Value)</strong>。<br>
+            无需额外的字段，只要此 PUT 请求成功，就意味着在边缘节点建立了一条 <code>"xiaoming" -> {"type": "love_letter"}</code> 的永久映射记录，域名绑定即刻生效！
+        </div>
         <p style="margin: 10px 0 0 0; font-size: 14px;"><strong>请求 Headers:</strong></p>
         <ul style="margin: 5px 0 0 0; font-family: monospace; color: #475569; font-size: 13px;">
             <li>Authorization: Bearer [CF_API_TOKEN]</li>
@@ -84,6 +92,8 @@
     <!-- 隐藏的纯 Markdown 文本框，用于复制 -->
     <textarea id="api-md" style="display: none;">
 ### 主站同步配置接口汇总
+
+> 💡 **域名是如何绑定的？** 本接口是一个标准的 PUT 写库请求。URL 结尾的 `{子域名前缀}` 是你要创建的 **键(Key)**；发送的 JSON Body 是存入的 **值(Value)**。请求成功即代表域名的路由映射绑定成功。
 
 **公共接口 URL**
 `PUT https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{子域名前缀}`
