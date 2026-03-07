@@ -1,137 +1,138 @@
 <div
     style="font-family: 'Inter', sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
 
-    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🔌 KV 配置同步 API</h1>
+    <h1 style="color: #2c3e50; border-bottom: 2px solid #eaeaea; padding-bottom: 10px;">🔌 项目的开通与修改接口</h1>
 
-    <p>本文档说明了主站如何与前端展示页面库（KV）连接并传递数据。</p>
+    <p style="color: #475569; font-size: 15px;">本文档说明了主站（中心服务器）如何与前端边缘访问层（基于 Cloudflare）交互以开通和更新用户页面。</p>
 
-    <h2 style="color: #d35400; margin-top: 30px;">1. 业务交互流程</h2>
+    <!-- 公共的基础信息 -->
     <div
-        style="background: #fdfae6; padding: 15px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 20px;">
-        <ol style="margin-top: 0;">
-            <li><strong>注册与选定：</strong> 用户注册后如果选择了模板，首次可以领取一个专属的子域名（如 <code>xiaoming.885201314.xyz</code>）。主站向 KV
-                发送最基础的模版标识（<code>type</code>），页面将使用模板默认值渲染。</li>
-            <li><strong>定制内容：</strong> 用户升级或使用免费次数想要修改模版内容时（如修改文字、图片），在主站进行表单填写。</li>
-            <li><strong>数据更新：</strong> 用户提交后，主站发起接口请求，将用户填写的全新定制内容（包含完整的 <code>type</code> 和 <code>data</code>）保存到 KV
-                的对应域名记录下。网页将在下次访问时即刻展示更新后的内容。</li>
-        </ol>
-    </div>
-
-    <!-- START API DISPLAY -->
-    <div
-        style="position: relative; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); background: #ffffff;">
-        <button onclick="copyMd()"
-            style="position: absolute; top: 15px; right: 15px; background: #2c3e50; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; color: #fff; transition: background 0.2s;">📋
-            复制 Markdown文档</button>
-
-        <h2 style="color: #27ae60; margin-top: 0; margin-bottom: 5px;">[PUT] 写入/更新配置记录</h2>
-        <p style="color: #64748b; font-size: 0.9em; margin-top: 0;">用于创建新的域名关联，或更新已有子域名的对应展示内容。</p>
-
-        <h4 style="margin: 20px 0 10px 0;">请求 URL</h4>
-        <div
-            style="background: #f1f5f9; padding: 10px; border-radius: 4px; font-family: monospace; color: #ef4444; word-break: break-all;">
+        style="background: #f1f5f9; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6; margin: 25px 0;">
+        <h3 style="margin: 0 0 10px 0; color: #1e3a8a; font-size: 16px;">🌐 统一 API 请求规范</h3>
+        <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>请求 URL:</strong></p>
+        <div style="margin: 5px 0; font-family: monospace; color: #ef4444; word-break: break-all; font-size: 13px;">
             PUT
-            https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{子域名前缀}
+            https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{分配给用户的子域名}
         </div>
-
-        <h4 style="margin: 20px 0 10px 0;">请求 Headers</h4>
-        <ul
-            style="background: #f1f5f9; padding: 10px 10px 10px 30px; border-radius: 4px; font-family: monospace; color: #334155; margin: 0;">
+        <p style="margin: 10px 0 0 0; font-size: 14px;"><strong>请求 Headers:</strong></p>
+        <ul style="margin: 5px 0 0 0; font-family: monospace; color: #475569; font-size: 13px;">
             <li>Authorization: Bearer [CF_API_TOKEN]</li>
             <li>Content-Type: application/json</li>
         </ul>
+        <p style="margin: 10px 0 0 0; font-size: 13px; color: #64748b;">* 下方的所有业务场景，均通过调用此接口配合不同的 JSON 参数实现。</p>
+    </div>
 
-        <h4 style="margin: 20px 0 10px 0;">参数 (JSON)</h4>
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9em; margin-bottom: 20px;">
-            <thead>
-                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                    <th style="padding: 10px;">字段</th>
-                    <th style="padding: 10px;">类型</th>
-                    <th style="padding: 10px;">必填</th>
-                    <th style="padding: 10px;">描述</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">type</td>
-                    <td style="padding: 10px;">String</td>
-                    <td style="padding: 10px; color: #ef4444;">是</td>
-                    <td style="padding: 10px;">模板名代号。如 <code>love_letter</code> 或 <code>anniversary</code></td>
-                </tr>
-                <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 10px; font-family: monospace; color: #0284c7;">data</td>
-                    <td style="padding: 10px;">Object</td>
-                    <td style="padding: 10px; color: #10b981;">否</td>
-                    <td style="padding: 10px;">用户定制的参数数据。不传或传空时，模板将渲染自身的默认内容</td>
-                </tr>
-            </tbody>
-        </table>
+    <button onclick="copyMd()"
+        style="float: right; margin-top: -15px; background: #2c3e50; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: #fff; transition: background 0.2s;">📋
+        一键复制 Markdown 接入文档</button>
+    <div style="clear: both;"></div>
 
-        <h4 style="margin: 20px 0 10px 0;">示例</h4>
+
+    <!-- 场景一：首次领取并分配域名 -->
+    <h2 style="color: #27ae60; margin-top: 10px; font-size: 20px; border-left: 4px solid #27ae60; padding-left: 10px;">
+        场景一：启用并初始化子域名</h2>
+    <div
+        style="background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+        <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>业务流程：</strong> 用户注册主站后，领取专属三级域名（如
+            <code>xiaoming</code>），此环节系统仅对其占位并进行初始化，但不立刻分配任何模板。用户访问将看到平台欢迎或未激活提示。</p>
+        <p style="margin: 0 0 5px 0; font-weight: bold; font-size: 14px; color: #0f172a;">发送参数 (JSON)：</p>
         <pre
-            style="background: #282c34; padding: 10px; border-radius: 6px; font-family: monospace; color: #abb2bf; overflow-x: auto; margin:0; font-size: 13px;">
+            style="background: #282c34; padding: 12px; border-radius: 6px; font-family: monospace; color: #abb2bf; margin:0; font-size: 13px;">
 {
-  "type": "love_letter",
-  "data": {
-    "title": "To Xiaohong",
-    "sender": "Xiaoming",
-    "receiver": "Xiaohong",
-    "paragraphs": ["You are the apple of my eye.", "I love you!"]
-  }
-}
-        </pre>
-
-        <h4 style="margin: 20px 0 10px 0;">响应 <code>HTTP 200 OK</code></h4>
-        <pre
-            style="background: #282c34; padding: 10px; border-radius: 6px; font-family: monospace; color: #98c379; overflow-x: auto; margin:0; font-size: 13px;">
-{
-  "result": null,
-  "success": true,
-  "errors": [],
-  "messages": []
+  "type": "uninitialized",
+  "data": {}
 }
         </pre>
     </div>
-    <!-- END API DISPLAY -->
+
+    <!-- 场景二：首次使用(选择)模板 -->
+    <h2 style="color: #d35400; margin-top: 10px; font-size: 20px; border-left: 4px solid #d35400; padding-left: 10px;">
+        场景二：首次选中模板使用</h2>
+    <div
+        style="background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+        <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>业务流程：</strong> 用户在其域名下选择了某个模板（如表白信
+            <code>love_letter</code>），但尚未填写任何个性化定制信息。此时调用接口，平台会利用该模板内置的<strong>默认文本与布局</strong>进行渲染。</p>
+        <p style="margin: 0 0 5px 0; font-weight: bold; font-size: 14px; color: #0f172a;">发送参数 (JSON)：</p>
+        <pre
+            style="background: #282c34; padding: 12px; border-radius: 6px; font-family: monospace; color: #abb2bf; margin:0; font-size: 13px;">
+{
+  "type": "love_letter"
+}
+        </pre>
+        <p style="margin: 8px 0 0 0; font-size: 13px; color: #64748b;">注：因为没有包含 <code>data</code>，模板代码将自动使用初始化默认值供用户预览。
+        </p>
+    </div>
+
+    <!-- 场景三：后续修改内容 -->
+    <h2 style="color: #8e44ad; margin-top: 10px; font-size: 20px; border-left: 4px solid #8e44ad; padding-left: 10px;">
+        场景三：后续修改模板内容 (深度定制)</h2>
+    <div
+        style="background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+        <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>业务流程：</strong>
+            用户使用了升级权限或免费次数，进入主站后台深度修改了该模板里的文字、名字或图片。接口推送全量的 <code>data</code> 参数后，边缘节点即时生效并展现新网页。</p>
+        <p style="margin: 0 0 5px 0; font-weight: bold; font-size: 14px; color: #0f172a;">发送参数 (JSON)：</p>
+        <pre
+            style="background: #282c34; padding: 12px; border-radius: 6px; font-family: monospace; color: #abb2bf; margin:0; font-size: 13px;">
+{
+  "type": "love_letter",
+  "data": {
+    "title": "To 亲爱的红红",
+    "sender": "小明",
+    "receiver": "小红",
+    "paragraphs": ["一直在一起吧！这是我写给你的表白信。"]
+  }
+}
+        </pre>
+    </div>
 
     <!-- 隐藏的纯 Markdown 文本框，用于复制 -->
     <textarea id="api-md" style="display: none;">
-### 创建/更新配置记录
+### 主站同步配置接口汇总
 
-**请求 URL**
+**公共接口 URL**
 `PUT https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{子域名前缀}`
 
 **请求 Headers:**
 - `Authorization: Bearer [CF_API_TOKEN]`
 - `Content-Type: application/json`
 
-**参数 (JSON):**
-| 字段 | 类型 | 必填 | 描述 |
-| --- | --- | --- | --- |
-| type | String | 是 | 模板名代号。如 `love_letter` 或 `anniversary` |
-| data | Object | 否 | 用户定制的参数数据。不传或传空时，模板将渲染自身的默认内容 |
+---
 
-**示例:**
+#### 📌 场景一：注册并首次启用子域名
+仅给用户划分子域名，尚未选择模板。
+**Body (JSON):**
+```json
+{
+  "type": "uninitialized",
+  "data": {}
+}
+```
+
+---
+
+#### 📌 场景二：首次选中并使用模板
+用户为该域名绑定了某款模板，但暂未填写定制内容，仅供默认展示。
+**Body (JSON):**
+```json
+{
+  "type": "love_letter"
+}
+```
+
+---
+
+#### 📌 场景三：后续深度修改与定制
+用户消耗次数修改了专属参数并保存，直接生效。
+**Body (JSON):**
 ```json
 {
   "type": "love_letter",
   "data": {
-    "title": "To Xiaohong",
-    "sender": "Xiaoming",
-    "receiver": "Xiaohong",
-    "paragraphs": ["You are the apple of my eye.", "I love you!"]
+    "title": "To 最可爱的红红",
+    "sender": "小明",
+    "receiver": "小红",
+    "paragraphs": ["希望我们长长久久。"]
   }
-}
-```
-
-**响应:**
-`HTTP 200 OK`
-```json
-{
-  "result": null,
-  "success": true,
-  "errors": [],
-  "messages": []
 }
 ```
     </textarea>
