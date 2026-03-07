@@ -19,6 +19,14 @@ export default {
     const host = url.hostname;
     const path = url.pathname;
 
+    // 0. Exclude internal specific subdomains from KV routing (like the document site)
+    if (host === 'document.885201314.xyz') {
+      const newUrl = new URL(request.url);
+      newUrl.hostname = 'document-9pv.pages.dev';
+      // Forward the request to the actual Pages domain to bypass Worker intercept
+      return fetch(newUrl.toString(), request);
+    }
+
     // 1. Direct Preview & Default Catalog Routing
     if (host === 'romancespace.885201314.xyz' || host.includes('workers.dev')) {
 
