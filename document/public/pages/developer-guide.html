@@ -10,70 +10,74 @@
     <h2 style="color: #d35400; margin-top: 30px;">1. 架构总览</h2>
     <p>RomanceSpace 的核心用户项目分发基于 <strong>Cloudflare Worker</strong> 和 <strong>Cloudflare KV</strong>（键值对存储）。</p>
     <ul>
-        <li><strong>请求链路：</strong> 用户访问 <code>[项目ID].romancespace.xxx</code> -> 触发 Cloudflare Worker -> 取出子域名
-            <code>[项目ID]</code> -> 查询 KV 数据库找到配置 -> 根据 <code>type</code> 动态选择项目模版 -> 返回渲染后的 HTML。
+        <li><strong>请求链路举例：</strong>
+            <ol>
+                <li>用户在浏览器输入定制的三级域名：<code>https://xiaoming.885201314.xyz</code></li>
+                <li>由于 Cloudflare 配置了泛解析 <code>*.885201314.xyz</code>，请求被边缘 Worker 拦截接管。</li>
+                <li>Worker 从域名中提取出最前方的子域名，即特征信息 <code>xiaoming</code>。</li>
+                <li>拿着 <code>xiaoming</code> 去高速 KV 数据库检索匹配的配置。</li>
+                <li>根据取出的 <code>type</code> 动态选择项目代码包，传入参数渲染最终网页发给用户浏览。</li>
+            </ol>
         </li>
-        <li><strong>优势：</strong> 全球边缘节点渲染，极速响应，前后端解耦。</li>
+        <li><strong>核心优势：</strong> 全球边缘节点万秒级快速渲染，项目前后端彻解耦。</li>
     </ul>
 
-    <h2 style="color: #27ae60; margin-top: 30px;">2. 后端开发：远端数据库的 KV 同步 API</h2>
-    <p>当用户在您的主站（如 MySQL/PostgreSQL）购买并定制了一个表白页面或纪念日页面时，您的服务端<strong>必须</strong>调用 Cloudflare API 将这份数据下发到 KV
-        存储中。这样边缘节点才能读取到最新配置。</p>
+    <h2 style="color: #27ae60; margin-top: 30px;">2. 主平台 (如 Next.js) 如何派发数据到 KV</h2>
+    <p>当用户在您的 Next.js 主网站上买单并定制了一个专属的纪念日页面后，您的 Next.js 服务端需要将最终配置推送到 Cloudflare KV 中供边缘系统消费。</p>
 
     <div
         style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #27ae60; overflow-x: auto;">
-        <h4 style="margin: 0 0 10px 0;">深入理解 KV 数据结构</h4>
-        <p style="margin: 0;"><strong>什么是 KV 的 Key (键名)？</strong></p>
-        <p style="margin: 5px 0 15px 0; color: #555;">在 Cloudflare KV 中，Key（键名）直接对应于用户将要访问的**专属子域名的前缀**。例如，如果我们设置一个 Key
-            为 <code>xiaoming</code>，那么系统就会将其绑定到三级域名访问地址：<code>xiaoming.885201314.xyz</code>。</p>
+        <h4 style="margin: 0 0 10px 0;">深入理解 KV 数据库的 K 与 V</h4>
+        <p style="margin: 0;"><strong>什么是 K (Key / 键名)？</strong></p>
+        <p style="margin: 5px 0 15px 0; color: #555;">K 决定了用户的访问网址。如果设置 K 为 <code>xiaoming</code>，则它死死绑定访问入口
+            <code>xiaoming.885201314.xyz</code>。</p>
 
-        <h4 style="margin: 0 0 10px 0;">Cloudflare KV Write API</h4>
-        <p style="margin: 0;"><strong>Endpoint (PUT):</strong></p>
-        <code
-            style="background: #eee; padding: 2px 5px;">https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/storage/kv/namespaces/{NAMESPACE_ID}/values/{项目标识(即子域名前缀，如xiaoming)}</code>
-
-        <p style="margin: 10px 0 0 0;"><strong>Headers:</strong></p>
-        <pre style="margin: 5px 0;">Authorization: Bearer [您的 CF API Token]
-Content-Type: application/json</pre>
-
-        <p style="margin: 10px 0 0 0;"><strong>Body (Payload 规范 - 也就是 KV 的 Value):</strong></p>
-        <p style="margin: 5px 0 5px 0; color: #555;">KV 的 Value (值) 必须是一个包含 <code>type</code> 和 <code>data</code> 属性的
-            JSON 字符串。<code>type</code> 用于决定加载哪个页面的代码模板，而 <code>data</code> 是真正传递给页面渲染器的数据对象。</p>
-        <pre style="margin: 5px 0; color: #d63384;">
+        <p style="margin: 0;"><strong>什么是 V (Value / 键值)？</strong></p>
+        <p style="margin: 5px 0 15px 0; color: #555;">V 是一串必须包含 <code>type</code> 和 <code>data</code> 两个核心字段的 JSON
+            字符串文本。<br>在其中，可以任意塞入用户自己填写的图片链接、文字祝福、日期、音乐等参数内容。</p>
+        <pre style="margin: 5px 0; color: #d63384; font-size: 0.9em; font-family: monospace;">
+// 理想放入 KV 中 V 的结构样貌
 {
-    "type": "love_letter", // 对应 src/projects/ 下的文件夹名称
-    "data": { // 任意传递给该模版的 JSON 数据参数
-        "title": "To Xiaohong",
-        "sender": "Xiaoming",
-        "receiver": "Xiaohong",
-        "paragraphs": ["You are the apple of my eye.", "I love you forever!"]
+    "type": "anniversary", // 告诉 Worker 应该去调用 /projects/anniversary 文件夹里的代码
+    "data": { // 这些字段全凭你高兴设计，用来传给指定的模版去显示
+        "title": "三周年快乐",
+        "startDate": "2023-01-01",
+        "message": "一直一直喜欢你。"
     }
 }
         </pre>
+
+        <h4 style="margin: 20px 0 10px 0;">主平台 Next.js 交互简要流程</h4>
+        <ol style="margin: 0; padding-left: 20px; color: #444;">
+            <li>在 Next.js 服务端 (Server Actions 或 API Route) 接收用户的定制表单请求。</li>
+            <li>拼接成上述这种包裹 <code>type</code> 和 <code>data</code> 的 JSON。</li>
+            <li>使用 Cloudflare 提供的官方 SDK/API，往该项目绑定的 <code>KV Namespace</code> 中写入一条记录，记录的键名为分配给他的子域名前缀。</li>
+            <li>此时即可重定向或通知用户：专属页面部署成功，请直接访问你的子域名。</li>
+        </ol>
     </div>
 
-    <h2 style="color: #8e44ad; margin-top: 30px;">3. Worker 主路由架构解析 (src/index.js)</h2>
-    <p>我们的 <code>src/index.js</code> 已经被剥离为一个纯粹的**“交通枢纽” (Router)**，它不包含任何具体页面的 UI 代码。它的执行流程如下：</p>
+    <h2 style="color: #8e44ad; margin-top: 30px;">3. Worker 目录与路由架构体系</h2>
+    <p>RomanceSpace 的根路由 <code>src/index.js</code> 完全扮演系统总线（Router）角色，它本身没有任何界面逻辑，仅包含数据的搬运与转发。目录结构非常清晰：</p>
     <div
         style="background: #282c34; color: #abb2bf; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 0.9em; overflow-x: auto; margin-bottom: 20px;">
         <pre style="margin: 0;">
-// 1. 域名分流 (Domain Splitting)
-// 如果访问的是 /preview/xxx，跳过数据库，直接调取本地模版进行强制预览。
-// 如果访问的是 document.885201314.xyz，原样转发给 Pages（文档中心）。
-
-// 2. 提取特征 (Subdomain Extraction)
-// 从 xiaoming.885201314.xyz 中提取出 'xiaoming' 作为查库依据。
-
-// 3. 查阅数据 (KV Fetching)
-let projectConfigJSON = await env.ROMANCESPACE_KV.get('xiaoming');
-
-// 4. 模块挂载 (Module Mounting)
-const config = JSON.parse(projectConfigJSON);
-const templateModule = PROJECT_REGISTRY[config.type]; // 取出对应的代码包
-const htmlStream = templateModule.render(config.data); // 将变量塞入包中生成网页
-return new Response(htmlStream);
+/romancespace
+├── src
+│   ├── index.js          (主路由器：拦截请求 -> 提取子域名 -> 查KV -> 将V转交组件)
+│   └── projects          (独立模版生态系统箱)
+│       ├── love_letter   (情书模版目录)
+│       └── anniversary   (纪念日模版目录)
         </pre>
     </div>
+
+    <p style="font-weight: bold; margin-bottom: 5px;">主路由数据流向解析：</p>
+    <ol style="margin-top: 0;">
+        <li>如果请求的是免配置的展示链接（如 <code>/preview/xxx</code>），则跳过数据库查询。直接把默认数据对象交给目标文件夹模块。</li>
+        <li>如果是有效的三级域名访问，例如提取到了 <code>xiaoming</code>，那么系统会把 <code>xiaoming</code> 对应的 KV 数据拉取出来。把 JSON 解码后，拿上它去唤醒对应目录。
+        </li>
+        <li>例如，解出 <code>type: anniversary</code> 取出里面的 <code>data: {...}</code>，主路由会将这段配置作为函数参数投喂给
+            <code>src/projects/anniversary/index.js</code> 的主函数。最终接收一段渲染好的纯 HTML 送给浏览器。</li>
+    </ol>
 
     <h2 style="color: #2980b9; margin-top: 30px;">4. 模版接入：如何将第三方网页变为 RomanceSpace 模版</h2>
     <p>如果您从网上下载了好看的网页源码（或者您自己编写了一个 HTML/JS 小项目），并希望把它作为 RomanceSpace 的一个新模版供用户选择，您<strong>只需要负责第一步</strong>，剩下的都可以交给 AI
@@ -122,6 +126,7 @@ export function render(config) {
         <p style="margin: 0;">当您放好文件后，您只需要告诉 AI：<strong>“我刚刚以新模版标准加入了一个叫 <code>new_project</code> 的模板文件夹，请你帮我更新
                 <code>src/index.js</code> 主文件并且把它注册到路由中。”</strong></p>
         <p style="margin: 10px 0 0 0; color: #555; font-size: 0.9em;">AI 会自动帮您 <code>import</code> 并在
-            <code>PROJECT_REGISTRY</code> 中建立索引机制，这样该模块就彻底被系统接管可用了。</p>
+            <code>PROJECT_REGISTRY</code> 中建立索引机制，这样该模块就彻底被系统接管可用了。
+        </p>
     </div>
 </div>
