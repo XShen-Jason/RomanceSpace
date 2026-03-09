@@ -72,6 +72,21 @@ function makeVersion() {
   return 'v' + new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
 }
 
+/** Inject viral footer into rendered HTML */
+function injectViralFooter(html) {
+  const viralHtml = `
+  <div style="text-align:center; padding: 20px 0; background: transparent; font-family: sans-serif; position: relative; z-index: 9999;">
+    <a href="https://romancespace.885201314.xyz" target="_blank" style="display:inline-block; padding:8px 16px; background:rgba(255,255,255,0.8); border-radius:20px; color:#d6336c; font-size:12px; font-weight:bold; text-decoration:none; box-shadow:0 2px 10px rgba(0,0,0,0.1); backdrop-filter:blur(4px); transition: transform 0.2s;">
+      ✨ 想要制作同款浪漫网页？点击创建你的专属页面 ✨
+    </a>
+  </div>`;
+  const bodyEndIdx = html.lastIndexOf('</body>');
+  if (bodyEndIdx !== -1) {
+    return html.substring(0, bodyEndIdx) + viralHtml + '\n' + html.substring(bodyEndIdx);
+  }
+  return html + '\n' + viralHtml;
+}
+
 // ── KV helpers ────────────────────────────────────────────────────────────────
 
 /** Append a subdomain to the reverse index for a given template type. */
@@ -132,9 +147,9 @@ export default {
     const method = request.method;
 
     // ── 0. Pass-through: Documentation site ───────────────────────
-    if (host === 'document.885201314.xyz') {
+    if (host === 'docs.885201314.xyz' || host === 'document.885201314.xyz') {
       const fwd = new URL(request.url);
-      fwd.hostname = 'document-9pv.pages.dev';
+      fwd.hostname = 'romancespace-docs.pages.dev';
       return fetch(fwd.toString(), request);
     }
 
@@ -317,7 +332,9 @@ export default {
           if (f.default !== undefined) defaults[f.key] = f.default;
         });
 
-        return new Response(injectData(html, defaults, schema), {
+        const rendered = injectViralFooter(injectData(html, defaults, schema));
+
+        return new Response(rendered, {
           headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         });
       }
@@ -417,13 +434,24 @@ export default {
     const cfgRaw = await env.ROMANCESPACE_KV.get(projectId);
     if (!cfgRaw) {
       return new Response(`
-        <h1 style="text-align:center;margin-top:50px;font-family:sans-serif;">404 Not Found</h1>
-        <p style="text-align:center;color:#666;font-family:sans-serif;">
-          项目 '<strong>${escapeHtml(projectId)}</strong>' 不存在或已过期。<br><br>
-          <a href="https://romancespace.885201314.xyz" style="color:#d6336c;">
-            返回 RomanceSpace 首页
-          </a>
-        </p>`, {
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="3;url=https://romancespace.885201314.xyz">
+          <title>404 Not Found</title>
+        </head>
+        <body style="background:#fafafa;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;">
+          <h1 style="color:#2c3e50;margin-bottom:10px;">404 Not Found</h1>
+          <p style="color:#666;text-align:center;">
+            专属页面 '<strong>${escapeHtml(projectId)}</strong>' 不存在或已过期。<br><br>
+            <span style="color:#aaa;font-size:14px;">3秒后自动跳转回首页挑选模板...</span><br><br>
+            <a href="https://romancespace.885201314.xyz" style="color:#d6336c;text-decoration:none;font-weight:bold;">
+              [手动返回 RomanceSpace 首页]
+            </a>
+          </p>
+        </body>
+        </html>`, {
         status: 404,
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
       });
@@ -462,6 +490,8 @@ export default {
         html = await prerenderUserPage(env, projectId, type, data, tmplMeta.version);
       }
     }
+
+    html = injectViralFooter(html);
 
     const response = new Response(html, {
       headers: {

@@ -1,4 +1,4 @@
-name = "romancespace"
+name = "romancespace-worker"
 main = "src/index.js"
 compatibility_date = "2024-03-05"
 
